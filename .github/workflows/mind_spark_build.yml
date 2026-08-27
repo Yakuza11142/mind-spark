@@ -50,6 +50,48 @@ jobs:
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
 
+          echo "plugins {" > android/app/build.gradle
+          echo "    id \"com.android.application\"" >> android/app/build.gradle
+          echo "    id \"kotlin-android\"" >> android/app/build.gradle
+          echo "    id \"dev.flutter.flutter-gradle-plugin\"" >> android/app/build.gradle
+          echo "}" >> android/app/build.gradle
+          echo "" >> android/app/build.gradle
+          echo "android {" >> android/app/build.gradle
+          echo "    namespace \"com.mindspark.com\"" >> android/app/build.gradle
+          echo "    compileSdk flutter.compileSdkVersion" >> android/app/build.gradle
+          echo "    ndkVersion flutter.ndkVersion" >> android/app/build.gradle
+          echo "" >> android/app/build.gradle
+          echo "    compileOptions {" >> android/app/build.gradle
+          echo "        sourceCompatibility JavaVersion.VERSION_1_8" >> android/app/build.gradle
+          echo "        targetCompatibility JavaVersion.VERSION_1_8" >> android/app/build.gradle
+          echo "    }" >> android/app/build.gradle
+          echo "" >> android/app/build.gradle
+          echo "    kotlinOptions {" >> android/app/build.gradle
+          echo "        jvmTarget = '1.8'" >> android/app/build.gradle
+          echo "    }" >> android/app/build.gradle
+          echo "" >> android/app/build.gradle
+          echo "    defaultConfig {" >> android/app/build.gradle
+          echo "        applicationId \"com.mindspark.com\"" >> android/app/build.gradle
+          echo "        minSdk 24" >> android/app/build.gradle
+          echo "        targetSdk flutter.targetSdkVersion" >> android/app/build.gradle
+          echo "        versionCode 1" >> android/app/build.gradle
+          echo "        versionName \"1.0.0\"" >> android/app/build.gradle
+          echo "        multiDexEnabled true" >> android/app/build.gradle
+          echo "    }" >> android/app/build.gradle
+          echo "" >> android/app/build.gradle
+          echo "    buildTypes {" >> android/app/build.gradle
+          echo "        release {" >> android/app/build.gradle
+          echo "            signingConfig signingConfigs.debug" >> android/app/build.gradle
+          echo "            minifyEnabled true" >> android/app/build.gradle
+          echo "            shrinkResources true" >> android/app/build.gradle
+          echo "        }" >> android/app/build.gradle
+          echo "    }" >> android/app/build.gradle
+          echo "}" >> android/app/build.gradle
+          echo "" >> android/app/build.gradle
+          echo "flutter {" >> android/app/build.gradle
+          echo "    source '../..'" >> android/app/build.gradle
+          echo "}" >> android/app/build.gradle
+
           echo "package com.mindspark.com;" > android/app/src/main/java/com/mindspark/com/MainActivity.kt
           echo "" >> android/app/src/main/java/com/mindspark/com/MainActivity.kt
           echo "import io.flutter.embedding.android.FlutterActivity" >> android/app/src/main/java/com/mindspark/com/MainActivity.kt
@@ -63,7 +105,7 @@ jobs:
         run: dart fix --apply
 
       - name: Format Dart Code
-        run: dart format 
+        run: dart format .
 
       - name: Build Release APK with Validation Bypass
         run: flutter build apk --release --android-skip-build-dependency-validation
