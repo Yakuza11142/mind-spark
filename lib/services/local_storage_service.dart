@@ -1,34 +1,24 @@
-import 'dart:io';
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalStorageService {
-  static Future<String> get _localPath async {
-    final directory = await getApplicationDocumentsDirectory();
-    return directory.path;
+  static const String _syncKey = 'mind_spark_offline_queue';
+
+  // Save string data locally
+  static Future<void> saveData(String key, String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(key, value);
   }
 
-  static Future<File> _getLocalFile(String fileName) async {
-    final path = await _localPath;
-    return File('$path/$fileName.json');
+  // Retrieve string data locally
+  static Future<String?> getData(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(key);
   }
 
-  static Future<void> saveData(String key, Map<String, dynamic> data) async {
-    try {
-      final file = await _getLocalFile(key);
-      await file.writeAsString(jsonEncode(data));
-    } catch (_) {
-      // Fail silently or handle locally
-    }
-  }
-
-  static Future<Map<String, dynamic>?> readData(String key) async {
-    try {
-      final file = await _getLocalFile(key);
-      if (!await file.exists()) return null;
-      final contents = await file.readAsString();
-      return jsonDecode(contents) as Map<String, dynamic>;
-    } catch (_) {
-      return null;
-    }
+  // Clear local record
+  static Future<void> clearData(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(key);
   }
 }
