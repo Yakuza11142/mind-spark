@@ -39,7 +39,7 @@ class _LoginViewState extends State<LoginView> {
                 const Text(
                   'Secure Magic Login',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.slate400, fontSize: 14),
+                  style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
                 ),
                 const SizedBox(height: 24),
                 TextField(
