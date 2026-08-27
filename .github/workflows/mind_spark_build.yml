@@ -32,6 +32,12 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
+      - name: Apply Dart Fixes
+        run: dart fix --apply
+
+      - name: Format Dart Code
+        run: dart format --output=none --set-exit-if-changed .
+
       - name: Build Release APK with Validation Bypass
         run: flutter build apk --release --android-skip-build-dependency-validation
 
