@@ -1,15 +1,35 @@
-include ':app'
+pluginManagement {
+    def flutterSdkPath = {
+        def properties = new Properties()
+        def file = new File('local.properties')
+        if (file.exists()) {
+            properties.load(new FileInputStream(file))
+        }
+        def flutterSdkPath = properties.getProperty('flutter.sdk')
+        assert flutterSdkPath != null, "flutter.sdk not set in local.properties"
+        return flutterSdkPath
+    }()
+
+    includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
+}
+
+plugins {
+    id "dev.flutter.flutter-plugin-loader" version "1.0.0"
+    id "com.android.application" version "7.3.0" apply false
+    id "org.jetbrains.kotlin.android" version "1.8.22" apply false
+}
+
+include ":app"
+
+def localPropertiesFile = new File(settingsDir, "local.properties")
+def localProperties = new Properties()
+if (localPropertiesFile.exists()) {
+    localProperties.load(new FileInputStream(localPropertiesFile))
+}
 
 def flutterRoot = localProperties.getProperty('flutter.sdk')
 if (flutterRoot == null) {
     throw new GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
 }
 
-loadInclude(flutterRoot)
-
-private void loadInclude(String flutterRoot) {
-    def pluginHostPath = new File(flutterRoot, "packages/flutter_tools/gradle")
-    if (pluginHostPath.exists()) {
-        apply from: "$pluginHostPath/app_plugin_loader.gradle"
-    }
-}
+apply from: "$flutterRoot/packages/flutter_tools/gradle/app_plugin_loader.gradle"
