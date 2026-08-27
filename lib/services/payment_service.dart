@@ -78,7 +78,6 @@ class PaymentService {
           'annual_family': cadFamilyAnnual,
         };
       case RegionMarket.usGlobal:
-        };
         return {
           'currency': 'USD',
           'symbol': '\$',
