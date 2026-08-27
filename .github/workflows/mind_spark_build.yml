@@ -29,6 +29,33 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Generate Android Directory
+        run: |
+          mkdir -p android/gradle/wrapper
+          mkdir -p android/app/src/main/java/com/mindspark/com
+
+          echo "distributionBase=GRADLE_USER_HOME" > android/gradle/wrapper/gradle-wrapper.properties
+          echo "distributionPath=wrapper/dists" >> android/gradle/wrapper/gradle-wrapper.properties
+          echo "distributionUrl=https\://services.gradle.org/distributions/gradle-8.14.1-bin.zip" >> android/gradle/wrapper/gradle-wrapper.properties
+          echo "zipStoreBase=GRADLE_USER_HOME" >> android/gradle/wrapper/gradle-wrapper.properties
+          echo "zipStorePath=wrapper/dists" >> android/gradle/wrapper/gradle-wrapper.properties
+
+          echo "allprojects { repositories { google(); mavenCentral() } }" > android/build.gradle
+          echo "rootProject.buildDir = '../build'" >> android/build.gradle
+          echo "subprojects { project.buildDir = \"\${rootProject.buildDir}/\${project.name}\" }" >> android/build.gradle
+          echo "subprojects { project.evaluationDependsOn(':app') }" >> android/build.gradle
+          echo "tasks.register(\"clean\", Delete) { delete rootProject.buildDir }" >> android/build.gradle
+
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m" > android/gradle.properties
+          echo "android.useAndroidX=true" >> android/gradle.properties
+          echo "android.enableJetifier=true" >> android/gradle.properties
+
+          echo "package com.mindspark.com;" > android/app/src/main/java/com/mindspark/com/MainActivity.kt
+          echo "" >> android/app/src/main/java/com/mindspark/com/MainActivity.kt
+          echo "import io.flutter.embedding.android.FlutterActivity" >> android/app/src/main/java/com/mindspark/com/MainActivity.kt
+          echo "" >> android/app/src/main/java/com/mindspark/com/MainActivity.kt
+          echo "class MainActivity: FlutterActivity() {}" >> android/app/src/main/java/com/mindspark/com/MainActivity.kt
+
       - name: Install Dependencies
         run: flutter pub get
 
@@ -36,7 +63,7 @@ jobs:
         run: dart fix --apply
 
       - name: Format Dart Code
-        run: dart format --output=none --set-exit-if-changed .
+        run: dart format 
 
       - name: Build Release APK with Validation Bypass
         run: flutter build apk --release --android-skip-build-dependency-validation
