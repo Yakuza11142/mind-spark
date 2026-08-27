@@ -1,5 +1,5 @@
-name: mind_spark
-description: "AI TUTOR & AR LAB"
+name: mind_spark_elite
+description: "Mind Spark Elite - Infinitely Unfailable Learning & Spatial Environment"
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -16,9 +16,9 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   flutter_launcher_icons: ^0.14.4
 
-# Launcher Icon Tool Configuration (Android Only)
+# Launcher Icon Configuration pointing to root-level asset
 flutter_launcher_icons:
-  image_path: "assets/icon/icon_launcher.png"
+  image_path: "icon_launcher.png"
   android: true
   ios: false
   min_sdk_android: 24
@@ -26,8 +26,6 @@ flutter_launcher_icons:
 flutter:
   uses-material-design: true
 
-  # Asset bundles mapping your introduction video, icons, and media
+  # Asset bundles mapping your root-level video file
   assets:
-    - assets/
-    - assets/icon/
-    - assets/video/
+    - intro.mp4
