@@ -8,7 +8,7 @@ class HomeView extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
       appBar: AppBar(
-        title: const Text('Mind Spark Elite Dashboard'),
+        title: const Text('Mind Spark Dashboard'),
         backgroundColor: const Color(0xFF1E293B),
       ),
       body: GridView.count(
