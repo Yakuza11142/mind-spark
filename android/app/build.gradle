@@ -5,8 +5,8 @@ plugins {
 }
 
 android {
-    namespace "com.mindspark.elite"
-    compileSdkVersion flutter.compileSdkVersion
+    namespace "com.mindspark.com"
+    compileSdk flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -19,9 +19,9 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.mindspark.elite"
-        minSdkVersion 24 // Required for modern AR and vector matrix pipelines
-        targetSdkVersion flutter.targetSdkVersion
+        applicationId "com.mindspark.com"
+        minSdk 24
+        targetSdk flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
