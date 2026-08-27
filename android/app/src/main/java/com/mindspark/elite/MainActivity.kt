@@ -1,4 +1,4 @@
-package com.mindspark.elite
+package com.mindspark.com
 
 import io.flutter.embedding.android.FlutterActivity
 
