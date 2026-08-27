@@ -1,0 +1,15 @@
+include ':app'
+
+def flutterRoot = localProperties.getProperty('flutter.sdk')
+if (flutterRoot == null) {
+    throw new GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
+}
+
+loadInclude(flutterRoot)
+
+private void loadInclude(String flutterRoot) {
+    def pluginHostPath = new File(flutterRoot, "packages/flutter_tools/gradle")
+    if (pluginHostPath.exists()) {
+        apply from: "$pluginHostPath/app_plugin_loader.gradle"
+    }
+}
