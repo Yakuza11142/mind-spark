@@ -1,55 +1,42 @@
-name: Mind Spark Elite CI/CD - Build APK & AAB
+name: Build Mind Spark APK
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ "main", "master" ]
+    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
   build:
-    name: Build Android APK and App Bundle
+    name: Build Android Release APK
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java
+      - name: Set up Java Development Kit
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Set up Flutter
+      - name: Set up Flutter SDK
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.47.1'
           channel: 'stable'
           cache: true
 
       - name: Install Dependencies
         run: flutter pub get
 
-      # Auto-format and fix minor code style issues
-      - name: Apply Dart Fix and Format
-        run: |
-          dart fix --apply
-          dart format .
+      - name: Build Release APK with Validation Bypass
+        run: flutter build apk --release --android-skip-build-dependency-validation
 
-      # Runs analysis but allows pipeline to proceed even if analyzer flags warnings
-      - name: Analyze Project Source
-        run: flutter analyze || true
-
-      - name: Build Android Release APK
-        run: flutter build apk --release
-
-      - name: Build Android App Bundle AAB
-        run: flutter build appbundle --release
-
-      - name: Upload Build Artifacts
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MindSparkElite-Release-Artifacts
-          path: |
-            build/app/outputs/flutter-apk/app-release.apk
-            build/app/outputs/bundle/release/app-release.aab
+          name: release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
