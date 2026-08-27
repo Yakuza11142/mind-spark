@@ -1,51 +1,31 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OfflineSyncQueue {
-  static const String _queueFileName = 'offline_action_queue.json';
+  static const String _queueKey = 'spark_sync_queue_items';
 
-  static Future<void> queueAction(String actionType, Map<String, dynamic> payload) async {
-    try {
-      final dir = await getApplicationDocumentsDirectory();
-      final file = File('${dir.path}/$_queueFileName');
-      
-      List<dynamic> queue = [];
-      if (await file.exists()) {
-        final content = await file.readAsString();
-        queue = jsonDecode(content) as List<dynamic>;
-      }
-
-      queue.add({
-        'type': actionType,
-        'payload': payload,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-
-      await file.writeAsString(jsonEncode(queue));
-    } catch (_) {}
+  // Add a failed payload action to the offline queue
+  static Future<void> enqueueAction(Map<String, dynamic> actionData) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> currentQueue = prefs.getStringList(_queueKey) ?? [];
+    
+    currentQueue.add(jsonEncode(actionData));
+    await prefs.setStringList(_queueKey, currentQueue);
   }
 
-  static Future<List<dynamic>> getPendingActions() async {
-    try {
-      final dir = await getApplicationDocumentsDirectory();
-      final file = File('${dir.path}/$_queueFileName');
-      if (!await file.exists()) return [];
-      
-      final content = await file.readAsString();
-      return jsonDecode(content) as List<dynamic>;
-    } catch (_) {
-      return [];
-    }
+  // Fetch all pending offline actions
+  static Future<List<Map<String, dynamic>>> getPendingActions() async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> currentQueue = prefs.getStringList(_queueKey) ?? [];
+
+    return currentQueue
+        .map((item) => jsonDecode(item) as Map<String, dynamic>)
+        .toList();
   }
 
+  // Clear or sync queue after successful network restoration
   static Future<void> clearQueue() async {
-    try {
-      final dir = await getApplicationDocumentsDirectory();
-      final file = File('${dir.path}/$_queueFileName');
-      if (await file.exists()) {
-        await file.delete();
-      }
-    } catch (_) {}
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_queueKey);
   }
 }
