@@ -4,7 +4,11 @@ class BottomNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
-  const BottomNavBar({Key? key, required this.currentIndex, required this.onTap}) : super(key: key);
+  const BottomNavBar({
+    Key? key,
+    required this.currentIndex,
+    required this.onTap,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -12,13 +16,30 @@ class BottomNavBar extends StatelessWidget {
       currentIndex: currentIndex,
       onTap: onTap,
       backgroundColor: const Color(0xFF0F172A),
-      selectedItemColor: Colors.amber,
+      selectedItemColor: Colors.purpleAccent,
       unselectedItemColor: Colors.white54,
+      type: BottomNavigationBarType.fixed,
       items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
-        BottomNavigationBarItem(icon: Icon(Icons.bolt_rounded), label: 'Sparks'),
-        BottomNavigationBarItem(icon: Icon(Icons.analytics_rounded), label: 'Analytics'),
-        BottomNavigationBarItem(icon: Icon(Icons.settings_rounded), label: 'Settings'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home_rounded),
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.menu_book_rounded),
+          label: 'Subjects',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.auto_awesome_rounded),
+          label: 'Spark AI',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.star_rounded),
+          label: 'Rank',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person_rounded),
+          label: 'Me',
+        ),
       ],
     );
   }
