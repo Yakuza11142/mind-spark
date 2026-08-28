@@ -42,10 +42,16 @@ jobs:
         run: |
           # 1. Establish custom clean platform directories
           mkdir -p android/gradle/wrapper
-          mkdir -p android/app/src/main/kotlin/com/mindspark/app
+          mkdir -p android/app/src/main/kotlin/com/mindspark/com
           mkdir -p android/app/src/main/res/values
           mkdir -p android/app/src/main/res/drawable
           mkdir -p web
+
+          # 1.5 Dynamically write local.properties to bridge the pipeline SDK environment path
+          echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
+          echo "flutter.versionName=1.0.0" >> android/local.properties
+          echo "flutter.versionCode=1" >> android/local.properties
+          echo "flutter.buildMode=release" >> android/local.properties
 
           # 2. Verified Semantic Distribution mapping to solve the FileNotFoundException
           cat << 'EOF' > android/gradle/wrapper/gradle-wrapper.properties
@@ -139,8 +145,8 @@ jobs:
           EOF
 
           # 6. Target custom MainActivity package mapping
-          cat << 'EOF' > android/app/src/main/kotlin/com/mindspark/app/MainActivity.kt
-          package com.mindspark.app
+          cat << 'EOF' > android/app/src/main/kotlin/com/mindspark/com/MainActivity.kt
+          package com.mindspark.com
           import io.flutter.embedding.android.FlutterActivity
           class MainActivity: FlutterActivity()
           EOF
@@ -232,6 +238,22 @@ jobs:
           </html>
           EOF
 
+          # 11. Minimal Web manifest schema mapping to clear compiler asset lookups
+          cat << 'EOF' > web/manifest.json
+          {
+              "name": "Mind Spark Elite",
+              "short_name": "MindSpark",
+              "start_url": ".",
+              "display": "standalone",
+              "background_color": "#000000",
+              "theme_color": "#000000",
+              "description": "AI TUTOR & AR LAB",
+              "orientation": "portrait-primary",
+              "prefer_related_applications": false,
+              "icons": []
+          }
+          EOF
+
       - name: Install Dependencies
         run: flutter pub get
 
@@ -251,8 +273,7 @@ jobs:
         run: flutter build appbundle --release --android-skip-build-dependency-validation
 
       - name: Build Production Web App for GitHub Pages
-        run: |
-          flutter build web --release --base-href "/mind-spark/"
+        run: flutter build web --release --base-href "/mind-spark/"
 
       - name: Upload Android APK & AAB Artifacts
         uses: actions/upload-artifact@v4
@@ -265,7 +286,7 @@ jobs:
       - name: Upload Web Build Blueprint for Deployment Step
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build/web/
+          path: build/web
 
   deploy:
     name: Deploy Live to GitHub Pages
