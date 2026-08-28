@@ -7,7 +7,6 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
-# Set up global system permissions required to publish to GitHub Pages securely
 permissions:
   contents: read
   pages: write
@@ -39,11 +38,24 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Auto-Generate Clean Infrastructure (Android & Web)
+      - name: Auto-Generate Clean Infrastructure Safely
         run: |
+          # 1. Back up your pure custom application code into a temporary folder
+          mkdir -p temp_lib
+          cp -r lib/* temp_lib/
+          
+          # 2. Wipe out old environment platform wrappers
           rm -rf android/
           rm -rf web/
+          
+          # 3. Create platform layers
           flutter create . --platforms=android,web --org com.mindspark --project-name mind_spark
+          
+          # 4. Wipe away the boilerplate and restore your real 40k LOC custom architecture
+          rm -rf lib/
+          mkdir -p lib
+          cp -r temp_lib/* lib/
+          rm -rf temp_lib
 
       - name: Install Dependencies
         run: flutter pub get
@@ -65,7 +77,6 @@ jobs:
 
       - name: Build Production Web App for GitHub Pages
         run: |
-          # Configures asset sub-routing paths explicitly for your repository: /mind-spark/
           flutter build web --release --base-href "/mind-spark/"
 
       - name: Upload Android APK & AAB Artifacts
