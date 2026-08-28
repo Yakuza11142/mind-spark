@@ -1,4 +1,4 @@
-name: Build Mind Spark APK
+name: Build and Deploy Mind Spark Cross-Platform
 
 on:
   push:
@@ -7,9 +7,19 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+# Set up global system permissions required to publish to GitHub Pages securely
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   build:
-    name: Build Android Release APK
+    name: Build Multi-Platform Artifacts
     runs-on: ubuntu-latest
 
     steps:
@@ -29,13 +39,11 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Auto-Generate Clean Android Infrastructure
+      - name: Auto-Generate Clean Infrastructure (Android & Web)
         run: |
-          # 1. Clean out any partial structures
           rm -rf android/
-          
-          # 2. Recreate native android folders using your exact pubspec name and target bundle ID
-          flutter create . --platforms=android --org com.mindspark --project-name mind_spark
+          rm -rf web/
+          flutter create . --platforms=android,web --org com.mindspark --project-name mind_spark
 
       - name: Install Dependencies
         run: flutter pub get
@@ -49,11 +57,38 @@ jobs:
       - name: Generate App Launcher Icons
         run: dart run flutter_launcher_icons
 
-      - name: Build Release APK with Validation Bypass
+      - name: Build Release APK
         run: flutter build apk --release --android-skip-build-dependency-validation
 
-      - name: Upload APK Artifact
+      - name: Build Release App Bundle (AAB)
+        run: flutter build appbundle --release --android-skip-build-dependency-validation
+
+      - name: Build Production Web App for GitHub Pages
+        run: |
+          # Configures asset sub-routing paths explicitly for your repository: /mind-spark/
+          flutter build web --release --base-href "/mind-spark/"
+
+      - name: Upload Android APK & AAB Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: android-builds
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
+
+      - name: Upload Web Build Blueprint for Deployment Step
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web/
+
+  deploy:
+    name: Deploy Live to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages API Pipeline
+        id: deployment
+        uses: actions/deploy-pages@v4
