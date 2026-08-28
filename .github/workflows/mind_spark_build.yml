@@ -42,12 +42,12 @@ jobs:
         run: |
           # 1. Establish custom clean platform directories
           mkdir -p android/gradle/wrapper
-          mkdir -p android/app/src/main/kotlin/com/mindspark/com
+          mkdir -p android/app/src/main/kotlin/com/mindspark/app
           mkdir -p android/app/src/main/res/values
           mkdir -p android/app/src/main/res/drawable
           mkdir -p web
 
-          # 1.5 Dynamically write local.properties (Unquoted EOF allows variable expansion)
+          # 1.5 Write hardcoded local.properties with explicit fallback paths
           cat << EOF > android/local.properties
           sdk.dir=/usr/local/lib/android/sdk
           flutter.sdk=$FLUTTER_ROOT
@@ -65,7 +65,7 @@ jobs:
           distributionUrl=https\://services.gradle.org/distributions/gradle-9.0.0-all.zip
           EOF
 
-          # 3. Direct declarative wrapper linking your engine plugins globally
+          # 3. Secure settings.gradle with robust dynamic property safety checks
           cat << 'EOF' > android/settings.gradle
           pluginManagement {
               def flutterSdkPath = {
@@ -74,9 +74,9 @@ jobs:
                   if (propertiesFile.exists()) {
                       propertiesFile.withReader("UTF-8") { reader -> properties.load(reader) }
                   }
-                  def sdkPath = properties.getProperty("flutter.sdk")
+                  def sdkPath = properties.getProperty("flutter.sdk") ?: System.getProperty("flutter.sdk") ?: System.getenv("FLUTTER_ROOT")
                   if (sdkPath == null) {
-                      throw new GradleException("flutter.sdk not set in local.properties")
+                      throw new GradleException("flutter.sdk route missing from compile environment variables")
                   }
                   return sdkPath
               }()
@@ -121,7 +121,7 @@ jobs:
               id "dev.flutter.flutter-gradle-plugin"
           }
           android {
-              namespace "com.mindspark.com"
+              namespace "com.mindspark.app"
               compileSdk 35
               compileOptions {
                   sourceCompatibility JavaVersion.VERSION_17
@@ -133,11 +133,11 @@ jobs:
                   }
               }
               defaultConfig {
-                  applicationId "com.mindspark.com"
+                  applicationId "com.mindspark.app"
                   minSdk 24
                   targetSdk 35
-                  versionCode flutterVersionCode.toInteger()
-                  versionName flutterVersionName
+                  versionCode 1
+                  versionName "1.0.0"
               }
               buildTypes {
                   release {
@@ -148,8 +148,8 @@ jobs:
           EOF
 
           # 6. Target custom MainActivity package mapping
-          cat << 'EOF' > android/app/src/main/kotlin/com/mindspark/com/MainActivity.kt
-          package com.mindspark.com
+          cat << 'EOF' > android/app/src/main/kotlin/com/mindspark/app/MainActivity.kt
+          package com.mindspark.app
           import io.flutter.embedding.android.FlutterActivity
           class MainActivity: FlutterActivity()
           EOF
@@ -269,8 +269,8 @@ jobs:
       - name: Generate App Launcher Icons
         run: dart run flutter_launcher_icons
 
-      - name: Build Release APK
-        run: flutter build apk --release --android-skip-build-dependency-validation
+      - name: Build Release APK with Hardcoded Project Property Safeties
+        run: flutter build apk --release --android-skip-build-dependency-validation --dart-define=DART_SHARED_PACKAGES=true
 
       - name: Build Release App Bundle (AAB)
         run: flutter build appbundle --release --android-skip-build-dependency-validation
