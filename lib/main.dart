@@ -14,7 +14,7 @@ class MindSparkApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Mind Spark Elite',
+      title: 'Mind Spark',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(),
       initialRoute: AppRoutes.splash,
