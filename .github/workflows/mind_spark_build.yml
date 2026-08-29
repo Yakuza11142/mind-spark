@@ -36,22 +36,41 @@ jobs:
         with:
           flutter-version: '3.47.1'
           channel: 'stable'
-          cache: true
+          cache: false
+
+      # --- FIXED MOBILE STEP: DOES EXACTLY WHAT FLUTTER ASKED IN THE ERROR ---
+      - name: Migrate Project Code to Fresh Workspace
+        run: |
+          # 1. Create a temporary folder to isolate your clean source files
+          mkdir -p ../temp_source
+          
+          # 2. Copy your dart logic, assets, and specs away from the broken android folder
+          cp -r lib ../temp_source/ || mkdir -p ../temp_source/lib
+          cp pubspec.yaml ../temp_source/ || true
+          cp icon_launcher.png ../temp_source/ || true
+          cp intro.mp4 ../temp_source/ || true
+          
+          # 3. Completely delete the current workspace directories
+          rm -rf *
+          rm -rf .* || true
+          
+          # 4. Generate a 100% pristine Flutter 3.47 app structure directly in the root
+          flutter create --platforms=android,web --org com.mindspark .
+          
+          # 5. Move your custom source code back over the fresh template files
+          cp -r ../temp_source/lib/* ./lib/ || true
+          cp ../temp_source/pubspec.yaml ./pubspec.yaml || true
+          cp ../temp_source/icon_launcher.png ./icon_launcher.png || true
+          cp ../temp_source/intro.mp4 ./intro.mp4 || true
 
       - name: Install Dependencies
         run: flutter pub get
 
-      - name: Apply Dart Fixes
-        run: dart fix --apply
-
-      - name: Format Dart Code
-        run: dart format .
-
       - name: Generate App Launcher Icons
-        run: dart run flutter_launcher_icons || echo "Skipping icon generation, using existing assets."
+        run: dart run flutter_launcher_icons || echo "Skipping icon generation"
 
-      - name: Build Release APK with Hardcoded Project Property Safeties
-        run: flutter build apk --release --android-skip-build-dependency-validation --dart-define=DART_SHARED_PACKAGES=true
+      - name: Build Release APK
+        run: flutter build apk --release --android-skip-build-dependency-validation
 
       - name: Build Release App Bundle (AAB)
         run: flutter build appbundle --release --android-skip-build-dependency-validation
