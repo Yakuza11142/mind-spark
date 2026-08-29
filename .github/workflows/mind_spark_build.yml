@@ -38,30 +38,12 @@ jobs:
           channel: 'stable'
           cache: false
 
-      # --- FIX: GENERATES THE MISSING WEB ENGINE PLATFORM DIRECTORY ---
+      # --- GENERATES THE MISSING WEB PLATFORM TEMPLATE FILES SAFELY ---
       - name: Force Recreate Fresh Platforms
         run: |
           rm -rf android/
           flutter create --platforms=android,web --org com.mindspark --project-name=mind_spark .
 
-      # --- RE-INJECT YOUR VIDEO ASSET PATH INTO THE DYNAMICALLY GENERATED PUBSPEC ---
-      - name: Patch Assets Configuration
-        run: |
-          cat << 'EOF' >> pubspec.yaml
-
-          flutter_launcher_icons:
-            image_path: "icon_launcher.png"
-            android: true
-            ios: false
-            min_sdk_android: 24
-
-          flutter:
-            uses-material-design: true
-            assets:
-              - intro.mp4
-          EOF
-
-      # --- ENFORCE COMPILATION CHECKS ---
       - name: Install Dependencies
         run: flutter pub get
 
