@@ -1,0 +1,7 @@
+*.iml
+*.modules
+.channel_id
+.gradle
+local.properties
+Flutter/GeneratedPluginRegistrant.java
+Flutter/flutter_export_environment.sh
