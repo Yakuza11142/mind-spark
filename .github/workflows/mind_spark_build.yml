@@ -38,31 +38,30 @@ jobs:
           channel: 'stable'
           cache: false
 
-      # --- FIXED: INJECTED THE EXPLICIT PROJECT NAME FLAG TO STOP LINT FAILURES ---
-      - name: Migrate Project Code to Fresh Workspace
+      # --- FIX: GENERATES THE MISSING WEB ENGINE PLATFORM DIRECTORY ---
+      - name: Force Recreate Fresh Platforms
         run: |
-          # 1. Create a temporary folder to isolate your clean source files
-          mkdir -p ../temp_source
-          
-          # 2. Copy your dart logic, assets, and specs away from the broken android folder
-          cp -r lib ../temp_source/ || mkdir -p ../temp_source/lib
-          cp pubspec.yaml ../temp_source/ || true
-          cp icon_launcher.png ../temp_source/ || true
-          cp intro.mp4 ../temp_source/ || true
-          
-          # 3. Completely delete the current workspace directories
-          rm -rf *
-          rm -rf .* || true
-          
-          # 4. FIXED: Explicitly force "mind_spark" name with underscores to bypass hyphen checks
+          rm -rf android/
           flutter create --platforms=android,web --org com.mindspark --project-name=mind_spark .
-          
-          # 5. Move your custom source code back over the fresh template files
-          cp -r ../temp_source/lib/* ./lib/ || true
-          cp ../temp_source/pubspec.yaml ./pubspec.yaml || true
-          cp ../temp_source/icon_launcher.png ./icon_launcher.png || true
-          cp ../temp_source/intro.mp4 ./intro.mp4 || true
 
+      # --- RE-INJECT YOUR VIDEO ASSET PATH INTO THE DYNAMICALLY GENERATED PUBSPEC ---
+      - name: Patch Assets Configuration
+        run: |
+          cat << 'EOF' >> pubspec.yaml
+
+          flutter_launcher_icons:
+            image_path: "icon_launcher.png"
+            android: true
+            ios: false
+            min_sdk_android: 24
+
+          flutter:
+            uses-material-design: true
+            assets:
+              - intro.mp4
+          EOF
+
+      # --- ENFORCE COMPILATION CHECKS ---
       - name: Install Dependencies
         run: flutter pub get
 
