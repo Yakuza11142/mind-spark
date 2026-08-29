@@ -1,9 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
-        <item android:windowBackground="@drawable/launch_background"/>
-    </style>
-    <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
-        <item android:windowBackground="@android:color/white"/>
-    </style>
-</resources>
+<manifest xmlns:android="http://android.com">
+    <uses-permission android:name="android.permission.INTERNET"/>
+</manifest>
