@@ -38,11 +38,30 @@ jobs:
           channel: 'stable'
           cache: false
 
-      # --- GENERATES THE MISSING WEB PLATFORM TEMPLATE FILES SAFELY ---
-      - name: Force Recreate Fresh Platforms
+      # --- ONLY RECREATES ANDROID, LEAVING YOUR CUSTOM WEB FOLDER INTACT ---
+      - name: Force Recreate Fresh Android Structure
         run: |
           rm -rf android/
-          flutter create --platforms=android,web --org com.mindspark --project-name=mind_spark .
+          flutter create --platforms=android --org com.mindspark --project-name=mind_spark .
+
+      # --- FIXED CLONE STEP: INJECTS YOUR ICON DIRECTLY INTO YOUR WEB FOLDERS ---
+      - name: Auto Clone Launcher Icons into Web Directory
+        run: |
+          if [ -f icon_launcher.png ]; then
+            # Ensure your web icons directory exists inside your custom folder structure
+            mkdir -p web/icons
+            
+            # Safely duplicate your root image into your web platform files
+            cp icon_launcher.png web/favicon.png
+            cp icon_launcher.png web/icons/Icon-192.png
+            cp icon_launcher.png web/icons/Icon-512.png
+            cp icon_launcher.png web/icons/Icon-maskable-192.png
+            cp icon_launcher.png web/icons/Icon-maskable-512.png
+            echo "Branding assets cloned into web structure successfully."
+          else
+            echo "Error: icon_launcher.png is missing from the root of your project!"
+            exit 1
+          fi
 
       - name: Install Dependencies
         run: flutter pub get
@@ -56,6 +75,7 @@ jobs:
       - name: Build Release App Bundle (AAB)
         run: flutter build appbundle --release --android-skip-build-dependency-validation
 
+      # --- COMPUTES WEB OUTPUT USING YOUR MODIFIED ENGINE FILESETS ---
       - name: Build Production Web App for GitHub Pages
         run: flutter build web --release --base-href "/mind-spark/"
 
