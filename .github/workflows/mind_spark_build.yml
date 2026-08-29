@@ -38,27 +38,6 @@ jobs:
           channel: 'stable'
           cache: true
 
-      # --- STEP FIXED: REMOVED WEB DOMAIN MARKERS TO FIX NATIVE PACKAGE COMPILATION ---
-      - name: Regenerate Pristine Android Platform Structure
-        run: |
-          # 1. Clear out the incompatible, outdated legacy android directory
-          rm -rf android/
-          
-          # 2. Run flutter create to build a modern, supported Android shell directory
-          flutter create --platforms=android --org com.mindspark .
-          
-          # 3. Create the proper nested subdirectory layout matching com.mindspark.com
-          mkdir -p android/app/src/main/kotlin/com/mindspark/com
-          
-          # 4. Safely migrate the default MainActivity into your targeted package subfolder
-          mv android/app/src/main/kotlin/com/mindspark/mind_spark/MainActivity.kt android/app/src/main/kotlin/com/mindspark/com/MainActivity.kt
-          rm -rf android/app/src/main/kotlin/com/mindspark/mind_spark
-          
-          # 5. Patch files with valid dot-separated Android package namespaces (NO SLASHES OR COLONS)
-          sed -i 's/com.mindspark.mind_spark/com.mindspark.com/g' android/app/build.gradle
-          sed -i 's/package com.mindspark.mind_spark/package com.mindspark.com/g' android/app/src/main/kotlin/com/mindspark/com/MainActivity.kt
-          sed -i 's/package="com.mindspark.mind_spark"/package="com.mindspark.com"/g' android/app/src/main/AndroidManifest.xml || true
-
       - name: Install Dependencies
         run: flutter pub get
 
