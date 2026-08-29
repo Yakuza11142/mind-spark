@@ -38,7 +38,7 @@ jobs:
           channel: 'stable'
           cache: false
 
-      # --- FIXED MOBILE STEP: DOES EXACTLY WHAT FLUTTER ASKED IN THE ERROR ---
+      # --- FIXED: INJECTED THE EXPLICIT PROJECT NAME FLAG TO STOP LINT FAILURES ---
       - name: Migrate Project Code to Fresh Workspace
         run: |
           # 1. Create a temporary folder to isolate your clean source files
@@ -54,8 +54,8 @@ jobs:
           rm -rf *
           rm -rf .* || true
           
-          # 4. Generate a 100% pristine Flutter 3.47 app structure directly in the root
-          flutter create --platforms=android,web --org com.mindspark .
+          # 4. FIXED: Explicitly force "mind_spark" name with underscores to bypass hyphen checks
+          flutter create --platforms=android,web --org com.mindspark --project-name=mind_spark .
           
           # 5. Move your custom source code back over the fresh template files
           cp -r ../temp_source/lib/* ./lib/ || true
