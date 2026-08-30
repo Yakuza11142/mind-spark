@@ -14,7 +14,7 @@ class SplashView extends StatelessWidget {
             Icon(Icons.auto_awesome, size: 64, color: Colors.indigoAccent),
             SizedBox(height: 16),
             Text(
-              'Mind Spark Elite',
+              'Mind Spark',
               style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8),
