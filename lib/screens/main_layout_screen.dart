@@ -3,28 +3,39 @@ import 'package:flutter/material.dart';
 class MainLayoutScreen extends StatelessWidget {
   const MainLayoutScreen({super.key});
 
-  // App Constants for Strings to avoid hardcoding
+  // Centralized strings to prevent hardcoded values
   static const String appTitle = 'Mind Spark';
-  static const String welcomeMessage = 'Welcome to Mind Spark!\nEngine Initialized Successfully.';
+  static const String welcomeMessage = 'Welcome to Mind Spark!\nEngine Core Initialized Successfully.';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Match the deep dark dashboard background canvas
-      backgroundColor: const Color(0xFF0F172A), 
       appBar: AppBar(
-        title: const Text(appTitle),
+        title: const Text(
+          appTitle,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
+        ),
         backgroundColor: const Color(0xFF1E293B),
         elevation: 0,
+        centerTitle: false,
+        // Optional: Safe back-button handling if transitioning from intro
+        automaticallyImplyLeading: false, 
       ),
       body: const Center(
-        child: Text(
-          welcomeMessage,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.white70,
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: Text(
+            welcomeMessage,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.white70,
+              height: 1.5, // Improves multiline readability
+            ),
           ),
         ),
       ),
