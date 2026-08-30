@@ -33,7 +33,7 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'MIND SPARK ELITE',
+              'MIND SPARK',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
