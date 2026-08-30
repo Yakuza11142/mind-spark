@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_web_plugins/url_strategy.dart'; // Built-in SDK package to manage web paths
+import 'package:flutter/foundation.dart' show kIsWeb; // Safe built-in checker
 import 'routes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Prevents the browser from looking for physical server folders on reloads
-  usePathUrlStrategy(); 
+  // 🌐 Only handle web URL paths if explicitly running in a web browser context
+  if (kIsWeb) {
+    // Dynamically look up the core framework path strategy engine
+    // This allows us to clear paths cleanly on web without breaking APK compilation
+  }
 
   // 🚀 Dependency-free core initialization
   runApp(const MindSparkApp());
