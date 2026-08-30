@@ -77,9 +77,9 @@ jobs:
       - name: Build Release App Bundle (AAB)
         run: flutter build appbundle --release --android-skip-build-dependency-validation
 
-      # --- COMPUTES WEB OUTPUT SUCCESSFULLY NOW ---
+      # --- FIXED: DISABLES CACHE VIA PWA STRATEGY SO LIVE CODE LOADS INSTANTLY ---
       - name: Build Production Web App for GitHub Pages
-        run: flutter build web --release --base-href "/mind-spark/"
+        run: flutter build web --release --base-href "/mind-spark/" --pwa-strategy=none
 
       - name: Upload Android APK & AAB Artifacts
         uses: actions/upload-artifact@v4
