@@ -54,9 +54,11 @@ class AppRoutes {
       case subjectView:
         return MaterialPageRoute(builder: (_) => const SubjectsView());
       case videoView:
-        return MaterialPageRoute(builder: (_) => const AiVideoFeedView());
+        // ✅ FIXED: Removed 'const' because your 500-line engine utilizes non-constant dynamic structures
+        return MaterialPageRoute(builder: (_) => AiVideoFeedView()); 
       case sparkAiView:
-        return MaterialPageRoute(builder: (_) => const SparkAiView());
+        // ✅ FIXED: Removed 'const' because your view uses dynamic variables
+        return MaterialPageRoute(builder: (_) => SparkAiView()); 
       case rankView:
         return MaterialPageRoute(builder: (_) => const RankView());
       case settingsView:
