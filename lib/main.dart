@@ -19,7 +19,7 @@ class MindSparkApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'MindSpark',
+      title: 'Mind Spark',
       debugShowCheckedModeBanner: false,
       // Sets the global canvas background to match your custom dark purple palette
       theme: ThemeData.dark().copyWith(
