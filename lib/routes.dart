@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/splash_screen.dart';
-import 'screens/intro_screen.dart'; // Add your intro screen import here
+import 'screens/intro_screen.dart'; 
 import 'screens/main_layout_screen.dart';
 
 class AppRoutes {
@@ -20,8 +20,13 @@ class AppRoutes {
         // Anti-Crash Fallback Route
         return MaterialPageRoute(
           builder: (_) => const Scaffold(
+            backgroundColor: Color(0xFF1B1424), // Matches your deep purple theme
             body: Center(
-              child: Text("Route Not Found. Re-routing to safety..."),
+              child: Text(
+                "Route Not Found.\nRe-routing to safety...",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white70, fontSize: 16),
+              ),
             ),
           ),
         );
