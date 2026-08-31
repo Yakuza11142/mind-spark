@@ -20,8 +20,9 @@ class _SplashScreenState extends State<SplashScreen> {
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
     
-    // Navigate to main screen
-    Navigator.pushReplacementNamed(context, AppRoutes.home);
+    // ✅ FIXED NEW ROUTE STRING
+Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
+
   }
 
   @override
