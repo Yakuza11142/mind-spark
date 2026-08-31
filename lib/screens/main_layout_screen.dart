@@ -82,7 +82,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
       backgroundColor: deepBackgroundColor,
       appBar: AppBar(
         title: const Text(
-          'MindSpark',
+          'Mind Spark',
           style: TextStyle(
             fontWeight: FontWeight.w500,
             letterSpacing: 0.3,
