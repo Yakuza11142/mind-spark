@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
 import 'routes.dart';
 
-// 🌐 Natively swaps path strategy execution based on compilation target
-import 'url_strategy_stub.dart' if (dart.library.js_util) 'url_strategy_web.dart';
-
-void main() {
+void main() async {
+  // 🚀 Core framework initialization (Dependency-free & works 100% offline)
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Safely initializes web path cleanup natively, or bypasses quietly on mobile
-  configureUrlStrategy();
 
   runApp(const MindSparkApp());
 }
@@ -21,9 +16,9 @@ class MindSparkApp extends StatelessWidget {
     return MaterialApp(
       title: 'Mind Spark',
       debugShowCheckedModeBanner: false,
-      // Sets the global canvas background to match your custom dark purple palette
+      // Sets the deep dark dashboard theme background canvas globally
       theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF1B1424),
+        scaffoldBackgroundColor: const Color(0xFF0F172A),
       ),
       initialRoute: AppRoutes.splash,
       onGenerateRoute: AppRoutes.generateRoute,
