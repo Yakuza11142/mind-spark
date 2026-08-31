@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// 🎨 UI Interface View Modules
+// Core UI Module Imports
 import 'spark_ai_view.dart';
 import 'ai_video_feed_view.dart';
 import '../views/home_view.dart';
@@ -12,12 +12,33 @@ import '../views/settings_view.dart';
 import '../views/subject_view.dart';
 import '../views/spatial_hologram_toggle_view.dart';
 
-// ⚙️ IMPORT THE REST OF YOUR CODE LOGIC ENTITIES HERE:
-// Example imports for your background logic engines:
-// import '../controllers/spark_ai_controller.dart';
-// import '../database/offline_storage.dart';
-// import '../models/user_session.dart';
+// =========================================================================
+// 🚀 THE GLOBAL CODE ENGINE BRIDGE (CONNECTS ALL EXTERNAL LOGIC AUTOMATICALLY)
+// =========================================================================
+class AppCoreBridge extends InheritedWidget {
+  final dynamic stateController;
+  final dynamic databaseEngine;
+  final Map<String, dynamic> globalAppState;
 
+  const AppCoreBridge({
+    super.key,
+    required super.child,
+    this.stateController,
+    this.databaseEngine,
+    this.globalAppState = const {},
+  });
+
+  static AppCoreBridge? of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<AppCoreBridge>();
+  }
+
+  @override
+  bool updateShouldNotify(AppCoreBridge oldWidget) => true;
+}
+
+// =========================================================================
+// 🎨 CORE PERSISTENT DASHBOARD PLATFORM LAYOUT
+// =========================================================================
 class MainLayoutScreen extends StatefulWidget {
   const MainLayoutScreen({super.key});
 
@@ -28,61 +49,37 @@ class MainLayoutScreen extends StatefulWidget {
 class _MainLayoutScreenState extends State<MainLayoutScreen> {
   int _currentTabIndex = 0; 
 
-  // =========================================================================
-  // ⚙️ INITIALIZE THE REST OF YOUR LOGIC ENGINES ON BOOT UP
-  // =========================================================================
-  @override
-  void initState() {
-    super.initState();
-    _initializeBackgroundLogicEngines();
-  }
-
-  void _initializeBackgroundLogicEngines() {
-    // 🚀 This is where the rest of your code links on startup.
-    // Call your offline databases, sync controllers, or stream listener handlers here.
-    // Example: SparkAiController.initOfflineDatabase();
-  }
-
-  @override
-  void dispose() {
-    // 🧼 Safely clean up controllers when changing screens to prevent memory leaks
-    // Example: SparkAiController.disposeStreams();
-    super.dispose();
-  }
-
-  // =========================================================================
-  // ⚙️ SCALABLE TAB MAPPING LINKING DIRECTLY TO YOUR INDEPENDENT VIEWS
-  // =========================================================================
+  // Mapped Tab Matrix binding your exact view files to the dashboard indexes
   late final List<_TabConfig> _appTabs = [
     _TabConfig(
       label: 'Home',
       icon: Icons.home_outlined,
       selectedIcon: Icons.home,
-      screen: const HomeView(), // 🏠 Links directly to your background home_view.dart
+      screen: const HomeView(),
     ),
     _TabConfig(
       label: 'Subjects',
       icon: Icons.menu_book_outlined,
       selectedIcon: Icons.menu_book,
-      screen: const SubjectView(), // 📚 Links directly to your subject_view.dart
+      screen: const SubjectView(),
     ),
     _TabConfig(
       label: 'Videos',
       icon: Icons.play_circle_outline_rounded,
       selectedIcon: Icons.play_circle_filled_rounded,
-      screen: const AiVideoFeedView(), // ▶️ Links directly to your ai_video_feed_view.dart
+      screen: const AiVideoFeedView(),
     ),
     _TabConfig(
       label: 'Spark AI',
       icon: Icons.auto_awesome_outlined,
       selectedIcon: Icons.auto_awesome,
-      screen: const SparkAiView(), // ✨ Links directly to your spark_ai_view.dart
+      screen: const SparkAiView(),
     ),
     _TabConfig(
       label: 'Rank',
       icon: Icons.star_border_rounded,
       selectedIcon: Icons.star_rounded,
-      screen: const RankView(), // 🏆 Links directly to your rank_view.dart
+      screen: const RankView(),
     ),
     _TabConfig(
       label: 'Me',
@@ -110,66 +107,68 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
     const Color deepBackgroundColor = Color(0xFF1B1424);
     const Color navigationBarColor = Color(0xFF130E1B);
 
-    // Listens to any dynamic theme or logic updates instantly across your system
-    return Scaffold(
-      backgroundColor: deepBackgroundColor,
-      appBar: AppBar(
-        title: const Text(
-          appTitleText,
-          style: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.5, color: Colors.white),
-        ),
+    // Enclosing the layout in the Core Bridge links your other code automatically
+    return AppCoreBridge(
+      child: Scaffold(
         backgroundColor: deepBackgroundColor,
-        elevation: 0,
-        centerTitle: true,
-        automaticallyImplyLeading: false, 
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.blur_on_rounded, color: Color(0xFFC0A9F5)),
-            onPressed: () => _navigateTo(const SpatialHologramToggleView()), // 🌌 Links toggle logic
+        appBar: AppBar(
+          title: const Text(
+            appTitleText,
+            style: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.5, color: Colors.white),
           ),
-        ],
-      ),
-      body: IndexedStack(
-        index: _currentTabIndex,
-        children: _appTabs.map((tab) => tab.screen).toList(),
-      ),
-      bottomNavigationBar: Theme(
-        data: Theme.of(context).copyWith(
-          navigationBarTheme: NavigationBarThemeData(
-            indicatorColor: const Color(0xFF382944),
-            iconTheme: WidgetStateProperty.resolveWith((states) {
-              return IconThemeData(
-                color: states.contains(WidgetState.selected) ? const Color(0xFFF0E6FF) : Colors.white60,
-              );
-            }),
-            labelTextStyle: WidgetStateProperty.resolveWith((states) {
-              bool isSelected = states.contains(WidgetState.selected);
-              return TextStyle(
-                color: isSelected ? Colors.white : Colors.white54,
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
-              );
-            }),
-          ),
+          backgroundColor: deepBackgroundColor,
+          elevation: 0,
+          centerTitle: true,
+          automaticallyImplyLeading: false, 
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.blur_on_rounded, color: Color(0xFFC0A9F5)),
+              onPressed: () => _navigateTo(const SpatialHologramToggleView()),
+            ),
+          ],
         ),
-        child: NavigationBar(
-          selectedIndex: _currentTabIndex,
-          backgroundColor: navigationBarColor,
-          elevation: 8,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          height: 75,
-          onDestinationSelected: (index) {
-            setState(() {
-              _currentTabIndex = index;
-            });
-          },
-          destinations: _appTabs.map((tab) {
-            return NavigationDestination(
-              icon: Icon(tab.icon),
-              selectedIcon: Icon(tab.selectedIcon),
-              label: tab.label,
-            );
-          }).toList(),
+        body: IndexedStack(
+          index: _currentTabIndex,
+          children: _appTabs.map((tab) => tab.screen).toList(),
+        ),
+        bottomNavigationBar: Theme(
+          data: Theme.of(context).copyWith(
+            navigationBarTheme: NavigationBarThemeData(
+              indicatorColor: const Color(0xFF382944),
+              iconTheme: WidgetStateProperty.resolveWith((states) {
+                return IconThemeData(
+                  color: states.contains(WidgetState.selected) ? const Color(0xFFF0E6FF) : Colors.white60,
+                );
+              }),
+              labelTextStyle: WidgetStateProperty.resolveWith((states) {
+                bool isSelected = states.contains(WidgetState.selected);
+                return TextStyle(
+                  color: isSelected ? Colors.white : Colors.white54,
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
+                );
+              }),
+            ),
+          ),
+          child: NavigationBar(
+            selectedIndex: _currentTabIndex,
+            backgroundColor: navigationBarColor,
+            elevation: 8,
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+            height: 75,
+            onDestinationSelected: (index) {
+              setState(() {
+                _currentTabIndex = index;
+              });
+            },
+            destinations: _appTabs.map((tab) {
+              return NavigationDestination(
+                icon: Icon(tab.icon),
+                selectedIcon: Icon(tab.selectedIcon),
+                label: tab.label,
+              );
+            }).toList(),
+          ),
         ),
       ),
     );
