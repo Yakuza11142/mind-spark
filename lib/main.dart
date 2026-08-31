@@ -18,7 +18,7 @@ class MindSparkApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       // Sets the deep dark dashboard theme background canvas globally
       theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF0F172A),
+        scaffoldBackgroundColor: const Color(0xFF1B1424),
       ),
       initialRoute: AppRoutes.splash,
       onGenerateRoute: AppRoutes.generateRoute,
