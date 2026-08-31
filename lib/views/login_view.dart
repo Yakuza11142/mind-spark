@@ -36,7 +36,8 @@ class _LoginViewState extends State<LoginView> {
                   style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                // ✅ FIXED: Removed 'const' keyword here to allow runtime evaluation of shade400
+                Text(
                   'Secure Magic Login',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
@@ -45,11 +46,11 @@ class _LoginViewState extends State<LoginView> {
                 TextField(
                   controller: _emailController,
                   style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Email Address',
-                    labelStyle: const TextStyle(color: Colors.white70),
-                    enabledBorder: OutlineInputBorder(borderSide: const BorderSide(color: Colors.white24)),
-                    focusedBorder: OutlineInputBorder(borderSide: const BorderSide(color: Colors.indigo)),
+                    labelStyle: TextStyle(color: Colors.white70),
+                    enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                    focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.indigo)),
                   ),
                 ),
                 if (_codeSent) ...[
@@ -57,11 +58,11 @@ class _LoginViewState extends State<LoginView> {
                   TextField(
                     controller: _codeController,
                     style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Enter 6-Digit Code',
-                      labelStyle: const TextStyle(color: Colors.white70),
-                      enabledBorder: OutlineInputBorder(borderSide: const BorderSide(color: Colors.white24)),
-                      focusedBorder: OutlineInputBorder(borderSide: const BorderSide(color: Colors.indigo)),
+                      labelStyle: TextStyle(color: Colors.white70),
+                      enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                      focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.indigo)),
                     ),
                   ),
                 ],
