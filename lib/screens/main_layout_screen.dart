@@ -1,5 +1,23 @@
 import 'package:flutter/material.dart';
 
+// 🎨 UI Interface View Modules
+import 'spark_ai_view.dart';
+import 'ai_video_feed_view.dart';
+import '../views/home_view.dart';
+import '../views/login_view.dart';
+import '../views/rank_view.dart';
+import '../views/legal_view.dart';
+import '../views/rewards_view.dart';
+import '../views/settings_view.dart';
+import '../views/subject_view.dart';
+import '../views/spatial_hologram_toggle_view.dart';
+
+// ⚙️ IMPORT THE REST OF YOUR CODE LOGIC ENTITIES HERE:
+// Example imports for your background logic engines:
+// import '../controllers/spark_ai_controller.dart';
+// import '../database/offline_storage.dart';
+// import '../models/user_session.dart';
+
 class MainLayoutScreen extends StatefulWidget {
   const MainLayoutScreen({super.key});
 
@@ -8,115 +26,129 @@ class MainLayoutScreen extends StatefulWidget {
 }
 
 class _MainLayoutScreenState extends State<MainLayoutScreen> {
-  // 1. Tracks the active navigation index (Set to 2 for Videos to match your screenshot)
-  int _currentTabIndex = 2; 
+  int _currentTabIndex = 0; 
 
-  // ==========================================
-  // 🔍 6-TAB CONTENT ARRANGEMENT
-  // ==========================================
-  late final List<Widget> _tabs = [
-    // Tab 0: Home
-    const Center(
-      child: Text(
-        'Home Screen Content',
-        style: TextStyle(fontSize: 16, color: Colors.white70),
+  // =========================================================================
+  // ⚙️ INITIALIZE THE REST OF YOUR LOGIC ENGINES ON BOOT UP
+  // =========================================================================
+  @override
+  void initState() {
+    super.initState();
+    _initializeBackgroundLogicEngines();
+  }
+
+  void _initializeBackgroundLogicEngines() {
+    // 🚀 This is where the rest of your code links on startup.
+    // Call your offline databases, sync controllers, or stream listener handlers here.
+    // Example: SparkAiController.initOfflineDatabase();
+  }
+
+  @override
+  void dispose() {
+    // 🧼 Safely clean up controllers when changing screens to prevent memory leaks
+    // Example: SparkAiController.disposeStreams();
+    super.dispose();
+  }
+
+  // =========================================================================
+  // ⚙️ SCALABLE TAB MAPPING LINKING DIRECTLY TO YOUR INDEPENDENT VIEWS
+  // =========================================================================
+  late final List<_TabConfig> _appTabs = [
+    _TabConfig(
+      label: 'Home',
+      icon: Icons.home_outlined,
+      selectedIcon: Icons.home,
+      screen: const HomeView(), // 🏠 Links directly to your background home_view.dart
+    ),
+    _TabConfig(
+      label: 'Subjects',
+      icon: Icons.menu_book_outlined,
+      selectedIcon: Icons.menu_book,
+      screen: const SubjectView(), // 📚 Links directly to your subject_view.dart
+    ),
+    _TabConfig(
+      label: 'Videos',
+      icon: Icons.play_circle_outline_rounded,
+      selectedIcon: Icons.play_circle_filled_rounded,
+      screen: const AiVideoFeedView(), // ▶️ Links directly to your ai_video_feed_view.dart
+    ),
+    _TabConfig(
+      label: 'Spark AI',
+      icon: Icons.auto_awesome_outlined,
+      selectedIcon: Icons.auto_awesome,
+      screen: const SparkAiView(), // ✨ Links directly to your spark_ai_view.dart
+    ),
+    _TabConfig(
+      label: 'Rank',
+      icon: Icons.star_border_rounded,
+      selectedIcon: Icons.star_rounded,
+      screen: const RankView(), // 🏆 Links directly to your rank_view.dart
+    ),
+    _TabConfig(
+      label: 'Me',
+      icon: Icons.person_outline_rounded,
+      selectedIcon: Icons.person_rounded,
+      screen: _MeMenuStack(
+        onOpenSettings: () => _navigateTo(const SettingsView()),
+        onOpenRewards: () => _navigateTo(const RewardsView()),
+        onOpenLegal: () => _navigateTo(const LegalView()),
+        onLogout: () => _navigateTo(const LoginView()),
       ),
-    ),
-    
-    // Tab 1: Subjects
-    const Center(
-      child: Text('📚 Subjects Screen', style: TextStyle(fontSize: 16, color: Colors.white70)),
-    ),
-    
-    // Tab 2: Videos (Matches your screenshot UI layout)
-    const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircleAvatar(
-            radius: 35,
-            backgroundColor: Color(0xFFC0A9F5), // Light purple icon background
-            child: Icon(
-              Icons.play_arrow_rounded,
-              size: 45,
-              color: Color(0xFF1B1424), // Dark deep purple icon color
-            ),
-          ),
-          SizedBox(height: 16),
-          Text(
-            'Videos',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ],
-      ),
-    ),
-    
-    // Tab 3: Spark AI
-    const Center(
-      child: Text('🤖 Spark AI Screen', style: TextStyle(fontSize: 16, color: Colors.white70)),
-    ),
-
-    // Tab 4: Rank
-    const Center(
-      child: Text('⭐ Rank Screen', style: TextStyle(fontSize: 16, color: Colors.white70)),
-    ),
-
-    // Tab 5: Me (Settings/Profile)
-    const Center(
-      child: Text('👤 Profile & Settings Screen', style: TextStyle(fontSize: 16, color: Colors.white70)),
     ),
   ];
 
+  void _navigateTo(Widget targetView) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => targetView),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Custom dark deep background matching your screenshot palette
+    const String appTitleText = 'Mind Spark';
     const Color deepBackgroundColor = Color(0xFF1B1424);
     const Color navigationBarColor = Color(0xFF130E1B);
 
+    // Listens to any dynamic theme or logic updates instantly across your system
     return Scaffold(
       backgroundColor: deepBackgroundColor,
       appBar: AppBar(
         title: const Text(
-          'Mind Spark',
-          style: TextStyle(
-            fontWeight: FontWeight.w500,
-            letterSpacing: 0.3,
-            color: Colors.white,
-          ),
+          appTitleText,
+          style: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.5, color: Colors.white),
         ),
         backgroundColor: deepBackgroundColor,
         elevation: 0,
         centerTitle: true,
         automaticallyImplyLeading: false, 
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.blur_on_rounded, color: Color(0xFFC0A9F5)),
+            onPressed: () => _navigateTo(const SpatialHologramToggleView()), // 🌌 Links toggle logic
+          ),
+        ],
       ),
       body: IndexedStack(
         index: _currentTabIndex,
-        children: _tabs,
+        children: _appTabs.map((tab) => tab.screen).toList(),
       ),
-      
-      // ==========================================
-      // 🔍 NAVIGATION ARRANGEMENT (6 ITEMS MATCHING SCREENSHOT)
-      // ==========================================
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
           navigationBarTheme: NavigationBarThemeData(
-            indicatorColor: const Color(0xFF382944), // Soft dark purple selected container tint
+            indicatorColor: const Color(0xFF382944),
             iconTheme: WidgetStateProperty.resolveWith((states) {
-              if (states.contains(WidgetState.selected)) {
-                return const IconThemeData(color: Color(0xFFF0E6FF)); // Bright active icon
-              }
-              return const IconThemeData(color: Colors.white60); // Dim inactive icon
+              return IconThemeData(
+                color: states.contains(WidgetState.selected) ? const Color(0xFFF0E6FF) : Colors.white60,
+              );
             }),
             labelTextStyle: WidgetStateProperty.resolveWith((states) {
-              if (states.contains(WidgetState.selected)) {
-                return const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w400);
-              }
-              return const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w400);
+              bool isSelected = states.contains(WidgetState.selected);
+              return TextStyle(
+                color: isSelected ? Colors.white : Colors.white54,
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
+              );
             }),
           ),
         ),
@@ -131,40 +163,83 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
               _currentTabIndex = index;
             });
           },
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.menu_book_outlined),
-              selectedIcon: Icon(Icons.menu_book),
-              label: 'Subjects',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.play_circle_outline_rounded),
-              selectedIcon: Icon(Icons.play_circle_filled_rounded),
-              label: 'Videos',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.auto_awesome_outlined),
-              selectedIcon: Icon(Icons.auto_awesome),
-              label: 'Spark AI',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.star_border_rounded),
-              selectedIcon: Icon(Icons.star_rounded),
-              label: 'Rank',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.person_outline_rounded),
-              selectedIcon: Icon(Icons.person_rounded),
-              label: 'Me',
-            ),
-          ],
+          destinations: _appTabs.map((tab) {
+            return NavigationDestination(
+              icon: Icon(tab.icon),
+              selectedIcon: Icon(tab.selectedIcon),
+              label: tab.label,
+            );
+          }).toList(),
         ),
       ),
     );
   }
+}
+
+// =========================================================================
+// 👤 SUB-MENU SELECTION LINK HUB WIDGET
+// =========================================================================
+class _MeMenuStack extends StatelessWidget {
+  final VoidCallback onOpenSettings;
+  final VoidCallback onOpenRewards;
+  final VoidCallback onOpenLegal;
+  final VoidCallback onLogout;
+
+  const _MeMenuStack({
+    required this.onOpenSettings,
+    required this.onOpenRewards,
+    required this.onOpenLegal,
+    required this.onLogout,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        const SizedBox(height: 20),
+        const Center(
+          child: CircleAvatar(
+            radius: 40,
+            backgroundColor: Color(0xFF382944),
+            child: Icon(Icons.person, size: 45, color: Color(0xFFF0E6FF)),
+          ),
+        ),
+        const SizedBox(height: 24),
+        _buildListTile(Icons.card_membership_rounded, 'My Rewards', onOpenRewards),
+        _buildListTile(Icons.settings_suggest_rounded, 'Settings Profile', onOpenSettings),
+        _buildListTile(Icons.gavel_rounded, 'Legal & Privacy Policy', onOpenLegal),
+        const Divider(color: Colors.white10, height: 32),
+        _buildListTile(Icons.logout_rounded, 'Sign Out Account', onLogout, textColor: Colors.redAccent),
+      ],
+    );
+  }
+
+  Widget _buildListTile(IconData icon, String label, VoidCallback onTap, {Color textColor = Colors.white}) {
+    return Card(
+      color: const Color(0xFF251B2E),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        leading: Icon(icon, color: textColor == Colors.redAccent ? Colors.redAccent : const Color(0xFFC0A9F5)),
+        title: Text(label, style: TextStyle(color: textColor, fontWeight: FontWeight.w500)),
+        trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white24),
+        onTap: onTap,
+      ),
+    );
+  }
+}
+
+class _TabConfig {
+  final String label;
+  final IconData icon;
+  final IconData selectedIcon;
+  final Widget screen;
+
+  const _TabConfig({
+    required this.label,
+    required this.icon,
+    required this.selectedIcon,
+    required this.screen,
+  });
 }
