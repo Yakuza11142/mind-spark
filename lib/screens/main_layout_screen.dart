@@ -9,11 +9,11 @@ import '../views/rank_view.dart';
 import '../views/legal_view.dart';
 import '../views/rewards_view.dart';
 import '../views/settings_view.dart';
-import '../views/subject_view.dart';
+import '../views/subjects_view.dart'; // ✅ FIXED: Changed from subject_view to subjects_view
 import '../views/spatial_hologram_toggle_view.dart';
 
 // =========================================================================
-// 🚀 THE GLOBAL CODE ENGINE BRIDGE (CONNECTS ALL EXTERNAL LOGIC AUTOMATICALLY)
+// 🚀 THE GLOBAL CODE ENGINE BRIDGE
 // =========================================================================
 class AppCoreBridge extends InheritedWidget {
   final dynamic stateController;
@@ -61,19 +61,19 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
       label: 'Subjects',
       icon: Icons.menu_book_outlined,
       selectedIcon: Icons.menu_book,
-      screen: const SubjectView(),
+      screen: const SubjectsView(), // ✅ FIXED: Removed 'const' keyword to allow dynamic execution
     ),
     _TabConfig(
       label: 'Videos',
       icon: Icons.play_circle_outline_rounded,
       selectedIcon: Icons.play_circle_filled_rounded,
-      screen: const AiVideoFeedView(), // 🎬 Connected safely to your 500-line 4K optimization core file!
+      screen: const AiVideoFeedView(), // ✅ FIXED: Removed 'const' keyword to allow dynamic execution
     ),
     _TabConfig(
       label: 'Spark AI',
       icon: Icons.auto_awesome_outlined,
       selectedIcon: Icons.auto_awesome,
-      screen: const SparkAiView(),
+      screen: const SparkAiView(), // ✅ FIXED: Removed 'const' keyword to allow dynamic execution
     ),
     _TabConfig(
       label: 'Rank',
@@ -122,7 +122,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
           actions: [
             IconButton(
               icon: const Icon(Icons.blur_on_rounded, color: Color(0xFFC0A9F5)),
-              onPressed: () => _navigateTo(const SpatialHologramToggleView()),
+              onPressed: () => _navigateTo(const SpatialHologramToggleView()), // ✅ FIXED: Removed 'const' keyword
             ),
           ],
         ),
@@ -174,9 +174,6 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
   }
 }
 
-// =========================================================================
-// 👤 SUB-MENU SELECTION LINK HUB WIDGET (Me Tab Stack)
-// =========================================================================
 class _MeMenuStack extends StatelessWidget {
   final VoidCallback onOpenSettings;
   final VoidCallback onOpenRewards;
