@@ -66,13 +66,13 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
       label: 'Videos',
       icon: Icons.play_circle_outline_rounded,
       selectedIcon: Icons.play_circle_filled_rounded,
-      screen: const AiVideoFeedView(),
+      screen: AiVideoFeedView(), // ✅ FIXED: Dropped 'const' to prevent compilation error
     ),
     _TabConfig(
       label: 'Spark AI',
       icon: Icons.auto_awesome_outlined,
       selectedIcon: Icons.auto_awesome,
-      screen: const SparkAiView(),
+      screen: SparkAiView(), // ✅ FIXED: Dropped 'const' to prevent compilation error
     ),
     _TabConfig(
       label: 'Rank',
