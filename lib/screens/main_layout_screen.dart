@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// Core UI Module Imports
+// Core UI Module Imports (Safely paths to all specified files)
 import 'spark_ai_view.dart';
 import 'ai_video_feed_view.dart';
 import '../views/home_view.dart';
@@ -67,7 +67,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
       label: 'Videos',
       icon: Icons.play_circle_outline_rounded,
       selectedIcon: Icons.play_circle_filled_rounded,
-      screen: const AiVideoFeedView(),
+      screen: const AiVideoFeedView(), // 🎬 Connected safely to your 500-line 4K optimization core file!
     ),
     _TabConfig(
       label: 'Spark AI',
@@ -107,7 +107,6 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
     const Color deepBackgroundColor = Color(0xFF1B1424);
     const Color navigationBarColor = Color(0xFF130E1B);
 
-    // Enclosing the layout in the Core Bridge links your other code automatically
     return AppCoreBridge(
       child: Scaffold(
         backgroundColor: deepBackgroundColor,
@@ -176,7 +175,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
 }
 
 // =========================================================================
-// 👤 SUB-MENU SELECTION LINK HUB WIDGET
+// 👤 SUB-MENU SELECTION LINK HUB WIDGET (Me Tab Stack)
 // =========================================================================
 class _MeMenuStack extends StatelessWidget {
   final VoidCallback onOpenSettings;
