@@ -38,6 +38,13 @@ jobs:
           channel: 'stable'
           cache: false
 
+      # --- SAFELY INSERTS THE CODE REPAIR AND FORMATTING AUTOMATION MOTOR ---
+      - name: Auto Format Entire Codebase Structure
+        run: dart format .
+
+      - name: Auto Apply Native Lint & Syntax Fixes
+        run: dart fix --apply
+
       # --- ONLY RECREATES ANDROID, LEAVING YOUR CUSTOM WEB FOLDER INTACT ---
       - name: Force Recreate Fresh Android Structure
         run: |
