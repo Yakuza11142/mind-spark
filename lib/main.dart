@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb; // Safe built-in checker
 import 'routes.dart';
 
-void main() async {
+// 🚀 Natively swaps files depending on target platform during compilation
+import 'url_strategy_stub.dart' if (dart.library.js_util) 'url_strategy_web.dart';
+
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 🌐 Only handle web URL paths if explicitly running in a web browser context
-  if (kIsWeb) {
-    // Dynamically look up the core framework path strategy engine
-    // This allows us to clear paths cleanly on web without breaking APK compilation
-  }
+  // Safely initializes web paths natively, or bypasses quietly on mobile
+  configureUrlStrategy();
 
-  // 🚀 Dependency-free core initialization
   runApp(const MindSparkApp());
 }
 
@@ -23,7 +21,6 @@ class MindSparkApp extends StatelessWidget {
     return MaterialApp(
       title: 'Mind Spark',
       debugShowCheckedModeBanner: false,
-      // Sets a dark canvas theme globally for all scaffolds
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF0F172A),
       ),
