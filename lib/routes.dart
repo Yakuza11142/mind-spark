@@ -8,14 +8,13 @@ import 'screens/main_layout_screen.dart';
 // 🚀 Sub-Screen and Navigation Flow Views
 import 'screens/spark_ai_view.dart';
 import 'screens/ai_video_feed_view.dart';
-import 'views/home_view.dart';
-import 'views/login_view.dart';
-import 'views/rank_view.dart';
-import 'views/legal_view.dart';
-import 'views/rewards_view.dart';
-import 'views/settings_view.dart';
-import 'views/subject_view.dart';
-import 'views/spatial_hologram_toggle_view.dart';
+import '../views/home_view.dart';
+import '../views/login_view.dart';
+import '../views/rank_view.dart';
+import '../views/legal_view.dart';
+import '../views/rewards_view.dart';
+import '../views/settings_view.dart';
+import '../views/subjects_view.dart';
 
 class AppRoutes {
   // --- Static Route Identifier Strings ---
@@ -33,7 +32,6 @@ class AppRoutes {
   static const String settingsView = '/settings_view';
   static const String rewardsView = '/rewards_view';
   static const String legalView = '/legal_view';
-  static const String hologramToggleView = '/hologram_view';
 
   /// ⚙️ Core Generation Routine linking every view path to its class compiler
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -54,7 +52,7 @@ class AppRoutes {
       case homeView:
         return MaterialPageRoute(builder: (_) => const HomeView());
       case subjectView:
-        return MaterialPageRoute(builder: (_) => const SubjectView());
+        return MaterialPageRoute(builder: (_) => const SubjectsView());
       case videoView:
         return MaterialPageRoute(builder: (_) => const AiVideoFeedView());
       case sparkAiView:
@@ -67,8 +65,6 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const RewardsView());
       case legalView:
         return MaterialPageRoute(builder: (_) => const LegalView());
-      case hologramToggleView:
-        return MaterialPageRoute(builder: (_) => const SpatialHologramToggleView());
 
       // 🚨 Security Fallback Anti-Crash Route
       default:
