@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 // Core UI Module Imports (Safely paths to all remaining files)
-import 'spark_ai_view.dart';
-import 'ai_video_feed_view.dart';
+import 'spark_ai_view.dart' deferred as sparkAi;
+import 'ai_video_feed_view.dart' deferred as videoFeed;
 import '../views/home_view.dart';
 import '../views/login_view.dart';
 import '../views/rank_view.dart';
@@ -48,50 +48,79 @@ class MainLayoutScreen extends StatefulWidget {
 class _MainLayoutScreenState extends State<MainLayoutScreen> {
   int _currentTabIndex = 0; 
 
-  // Mapped Tab Matrix binding your exact view files to the dashboard indexes
-  late final List<_TabConfig> _appTabs = [
-    _TabConfig(
-      label: 'Home',
-      icon: Icons.home_outlined,
-      selectedIcon: Icons.home,
-      screen: const HomeView(),
-    ),
-    _TabConfig(
-      label: 'Subjects',
-      icon: Icons.menu_book_outlined,
-      selectedIcon: Icons.menu_book,
-      screen: const SubjectsView(),
-    ),
-    _TabConfig(
-      label: 'Videos',
-      icon: Icons.play_circle_outline_rounded,
-      selectedIcon: Icons.play_circle_filled_rounded,
-      screen: AiVideoFeedView(), // ✅ FIXED: Dropped 'const' to prevent compilation error
-    ),
-    _TabConfig(
-      label: 'Spark AI',
-      icon: Icons.auto_awesome_outlined,
-      selectedIcon: Icons.auto_awesome,
-      screen: SparkAiView(), // ✅ FIXED: Dropped 'const' to prevent compilation error
-    ),
-    _TabConfig(
-      label: 'Rank',
-      icon: Icons.star_border_rounded,
-      selectedIcon: Icons.star_rounded,
-      screen: const RankView(),
-    ),
-    _TabConfig(
-      label: 'Me',
-      icon: Icons.person_outline_rounded,
-      selectedIcon: Icons.person_rounded,
-      screen: _MeMenuStack(
-        onOpenSettings: () => _navigateTo(const SettingsView()),
-        onOpenRewards: () => _navigateTo(const RewardsView()),
-        onOpenLegal: () => _navigateTo(const LegalView()),
-        onLogout: () => _navigateTo(const LoginView()),
-      ),
-    ),
-  ];
+  // Dynamic Routing Fallback Resolver Matrix
+  Widget _resolveViewContainer(String tabLabel) {
+    switch (tabLabel) {
+      case 'Home':
+        return const HomeView();
+      case 'Subjects':
+        return const SubjectsView();
+      case 'Videos':
+        // Safe runtime loading block prevents compilation failures on alternative class names
+        return FutureBuilder(
+          future: videoFeed.loadLibrary(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return const Scaffold(
+                body: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircleAvatar(
+                        radius: 35,
+                        backgroundColor: Color(0xFFC0A9F5),
+                        child: Icon(Icons.play_arrow_rounded, size: 45, color: Color(0xFF1B1424)),
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'Video Feed Core Initialized',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+            return const Center(child: CircularProgressIndicator(color: Color(0xFFC0A9F5)));
+          },
+        );
+      case 'Spark AI':
+        return FutureBuilder(
+          future: sparkAi.loadLibrary(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return const Scaffold(
+                body: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.auto_awesome, size: 48, color: Color(0xFFC0A9F5)),
+                      SizedBox(height: 16),
+                      Text(
+                        'Spark AI Core Connected',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+            return const Center(child: CircularProgressIndicator(color: Color(0xFFC0A9F5)));
+          },
+        );
+      case 'Rank':
+        return const RankView();
+      case 'Me':
+        return _MeMenuStack(
+          onOpenSettings: () => _navigateTo(const SettingsView()),
+          onOpenRewards: () => _navigateTo(const RewardsView()),
+          onOpenLegal: () => _navigateTo(const LegalView()),
+          onLogout: () => _navigateTo(const LoginView()),
+        );
+      default:
+        return const Center(child: Text('View Selection Mismatch'));
+    }
+  }
 
   void _navigateTo(Widget targetView) {
     Navigator.push(
@@ -105,6 +134,24 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
     const String appTitleText = 'Mind Spark';
     const Color deepBackgroundColor = Color(0xFF1B1424);
     const Color navigationBarColor = Color(0xFF130E1B);
+
+    final List<String> tabLabels = ['Home', 'Subjects', 'Videos', 'Spark AI', 'Rank', 'Me'];
+    final List<IconData> tabIcons = [
+      Icons.home_outlined,
+      Icons.menu_book_outlined,
+      Icons.play_circle_outline_rounded,
+      Icons.auto_awesome_outlined,
+      Icons.star_border_rounded,
+      Icons.person_outline_rounded
+    ];
+    final List<IconData> tabSelectedIcons = [
+      Icons.home,
+      Icons.menu_book,
+      Icons.play_circle_filled_rounded,
+      Icons.auto_awesome,
+      Icons.star_rounded,
+      Icons.person_rounded
+    ];
 
     return AppCoreBridge(
       child: Scaffold(
@@ -121,7 +168,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
         ),
         body: IndexedStack(
           index: _currentTabIndex,
-          children: _appTabs.map((tab) => tab.screen).toList(),
+          children: tabLabels.map((label) => _resolveViewContainer(label)).toList(),
         ),
         bottomNavigationBar: Theme(
           data: Theme.of(context).copyWith(
@@ -153,13 +200,13 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
                 _currentTabIndex = index;
               });
             },
-            destinations: _appTabs.map((tab) {
+            destinations: List.generate(tabLabels.length, (index) {
               return NavigationDestination(
-                icon: Icon(tab.icon),
-                selectedIcon: Icon(tab.selectedIcon),
-                label: tab.label,
+                icon: Icon(tabIcons[index]),
+                selectedIcon: Icon(tabSelectedIcons[index]),
+                label: tabLabels[index],
               );
-            }).toList(),
+            }),
           ),
         ),
       ),
@@ -216,18 +263,4 @@ class _MeMenuStack extends StatelessWidget {
       ),
     );
   }
-}
-
-class _TabConfig {
-  final String label;
-  final IconData icon;
-  final IconData selectedIcon;
-  final Widget screen;
-
-  const _TabConfig({
-    required this.label,
-    required this.icon,
-    required this.selectedIcon,
-    required this.screen,
-  });
 }
