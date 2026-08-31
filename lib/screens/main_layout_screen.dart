@@ -8,11 +8,8 @@ class MainLayoutScreen extends StatefulWidget {
 }
 
 class _MainLayoutScreenState extends State<MainLayoutScreen> {
-  // 1. Tracks the active navigation index
-  int _currentTabIndex = 2; // Default selected to 2 (Videos) to match your screenshot
-
-  static const String appTitle = 'MindSpark';
-  static const String welcomeMessage = 'Welcome to MindSpark!\nEngine Core Initialized Successfully.';
+  // 1. Tracks the active navigation index (Set to 2 for Videos to match your screenshot)
+  int _currentTabIndex = 2; 
 
   // ==========================================
   // 🔍 6-TAB CONTENT ARRANGEMENT
@@ -20,13 +17,9 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
   late final List<Widget> _tabs = [
     // Tab 0: Home
     const Center(
-      child: Padding(
-        padding: EdgeInsets.all(24.0),
-        child: Text(
-          welcomeMessage,
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16, color: Colors.white70, height: 1.5),
-        ),
+      child: Text(
+        'Home Screen Content',
+        style: TextStyle(fontSize: 16, color: Colors.white70),
       ),
     ),
     
@@ -35,7 +28,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
       child: Text('📚 Subjects Screen', style: TextStyle(fontSize: 16, color: Colors.white70)),
     ),
     
-    // Tab 2: Videos (Matches your updated screenshot UI)
+    // Tab 2: Videos (Matches your screenshot UI layout)
     const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -82,14 +75,14 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
   @override
   Widget build(BuildContext context) {
     // Custom dark deep background matching your screenshot palette
-    final Color deepBackgroundColor = const Color(0xFF1B1424);
-    final Color navigationBarColor = const Color(0xFF130E1B);
+    const Color deepBackgroundColor = Color(0xFF1B1424);
+    const Color navigationBarColor = Color(0xFF130E1B);
 
     return Scaffold(
       backgroundColor: deepBackgroundColor,
       appBar: AppBar(
         title: const Text(
-          appTitle,
+          'MindSpark',
           style: TextStyle(
             fontWeight: FontWeight.w500,
             letterSpacing: 0.3,
@@ -111,7 +104,6 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
       // ==========================================
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
-          // Styles the selection pill indicator box behind the active icon
           navigationBarTheme: NavigationBarThemeData(
             indicatorColor: const Color(0xFF382944), // Soft dark purple selected container tint
             iconTheme: WidgetStateProperty.resolveWith((states) {
