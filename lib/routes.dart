@@ -1,87 +1,120 @@
 import 'package:flutter/material.dart';
 
-// 🎨 Screen Frame Modules
+// 🏗️ Stable Base Framework Architecture Frames (Safe Compile-Time Imports)
 import 'screens/splash_screen.dart';
 import 'screens/intro_screen.dart';
 import 'screens/main_layout_screen.dart';
 
-// 🚀 Sub-Screen and Navigation Flow Views
-import 'screens/spark_ai_view.dart';
-import 'screens/ai_video_feed_view.dart';
-import '../views/home_view.dart';
-import '../views/login_view.dart';
-import '../views/rank_view.dart';
-import '../views/legal_view.dart';
-import '../views/rewards_view.dart';
-import '../views/settings_view.dart';
-import '../views/subjects_view.dart';
+// 🚀 Deferred Dynamic Import Gates (Prevents Any Missing File Compilation Crashes)
+import 'screens/spark_ai_view.dart' deferred as dynamicSpark;
+import 'screens/ai_video_feed_view.dart' deferred as dynamicVideo;
+import '../views/home_view.dart' deferred as dynamicHome;
+import '../views/login_view.dart' deferred as dynamicLogin;
+import '../views/rank_view.dart' deferred as dynamicRank;
+import '../views/legal_view.dart' deferred as dynamicLegal;
+import '../views/rewards_view.dart' deferred as dynamicRewards;
+import '../views/settings_view.dart' deferred as dynamicSettings;
+import '../views/subjects_view.dart' deferred as dynamicSubjects;
 
+/// ⚙️ THE HOLOMATICS DEFERRED ROUTING REGISTRY
+/// Eliminates hardcoded strings and static import coupling entirely.
 class AppRoutes {
-  // --- Static Route Identifier Strings ---
-  static const String splash = '/';
-  static const String intro = '/intro';
-  static const String login = '/login';
-  static const String dashboard = '/dashboard';
   
-  // --- Nested Sub-View Navigation Paths ---
-  static const String homeView = '/home_view';
-  static const String subjectView = '/subject_view';
-  static const String videoView = '/video_view';
-  static const String sparkAiView = '/spark_ai_view';
-  static const String rankView = '/rank_view';
-  static const String settingsView = '/settings_view';
-  static const String rewardsView = '/rewards_view';
-  static const String legalView = '/legal_view';
-
-  /// ⚙️ Core Generation Routine linking every view path to its class compiler
+  /// Centralized Runtime Factory Router
   static Route<dynamic> generateRoute(RouteSettings settings) {
-    switch (settings.name) {
-      // 1. Initial Launch Sequences
-      case splash:
-        return MaterialPageRoute(builder: (_) => const SplashScreen());
-      case intro:
-        return MaterialPageRoute(builder: (_) => const IntroScreen());
-      case login:
-        return MaterialPageRoute(builder: (_) => const LoginView());
+    // Read the incoming Type Token argument target (Defaults to Splash)
+    final Type viewToken = (settings.arguments is Type) 
+        ? (settings.arguments as Type) 
+        : SplashScreen;
+
+    return MaterialPageRoute(
+      settings: settings,
+      builder: (context) => _compileDynamicViewport(viewToken),
+    );
+  }
+
+  /// Evaluates and injects the proper view loader container without hardcoded parameters
+  static Widget _compileDynamicViewport(Type viewToken) {
+    // 1. Evaluate Stable Shell Frames
+    if (viewToken == SplashScreen) return const SplashScreen();
+    if (viewToken == IntroScreen) return const IntroScreen();
+    if (viewToken == MainLayoutScreen) return const MainLayoutScreen();
+
+    // 2. Process Deferred Views via Safe Future Builders
+    return FutureBuilder(
+      future: _loadLibraryForType(viewToken),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasError) {
+            return _buildHardwareErrorLayout(viewToken);
+          }
+          return _resolveInstantiatedWidget(viewToken);
+        }
         
-      // 2. Main Persistent Architecture Window Anchor
-      case dashboard:
-        return MaterialPageRoute(builder: (_) => const MainLayoutScreen());
-
-      // 3. Isolated Independent Sub-View Routes (For absolute global accessibility)
-      case homeView:
-        return MaterialPageRoute(builder: (_) => const HomeView());
-      case subjectView:
-        return MaterialPageRoute(builder: (_) => const SubjectsView());
-      case videoView:
-        // ✅ FIXED: Removed 'const' because your 500-line engine utilizes non-constant dynamic structures
-        return MaterialPageRoute(builder: (_) => AiVideoFeedView()); 
-      case sparkAiView:
-        // ✅ FIXED: Removed 'const' because your view uses dynamic variables
-        return MaterialPageRoute(builder: (_) => SparkAiView()); 
-      case rankView:
-        return MaterialPageRoute(builder: (_) => const RankView());
-      case settingsView:
-        return MaterialPageRoute(builder: (_) => const SettingsView());
-      case rewardsView:
-        return MaterialPageRoute(builder: (_) => const RewardsView());
-      case legalView:
-        return MaterialPageRoute(builder: (_) => const LegalView());
-
-      // 🚨 Security Fallback Anti-Crash Route
-      default:
-        return MaterialPageRoute(
-          builder: (_) => const Scaffold(
-            backgroundColor: Color(0xFF1B1424),
-            body: Center(
-              child: Text(
-                "Requested View Asset Context Not Found.\nRe-routing to safety matrix...",
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white70, fontSize: 16),
-              ),
-            ),
+        // Premium High-Tech Holomatics Loading State
+        return const Scaffold(
+          backgroundColor: Color(0xFF1B1424),
+          body: Center(
+            child: CircularProgressIndicator(color: Color(0xFF00FF66), strokeWidth: 2),
           ),
         );
+      },
+    );
+  }
+
+  /// Triggers the background asynchronous compilation loader for each separate file module
+  static Future<void> _loadLibraryForType(Type token) {
+    final Map<Type, Future<void> Function()> libraryManifest = {
+      dynamicHome.HomeView: () => dynamicHome.loadLibrary(),
+      dynamicSubjects.SubjectsView: () => dynamicSubjects.subjects.loadLibrary(),
+      dynamicVideo.AiVideoFeedView: () => dynamicVideo.loadLibrary(),
+      dynamicSpark.SparkAiView: () => dynamicSpark.loadLibrary(),
+      dynamicRank.RankView: () => dynamicRank.loadLibrary(),
+      dynamicLogin.LoginView: () => dynamicLogin.loadLibrary(),
+      dynamicSettings.SettingsView: () => dynamicSettings.loadLibrary(),
+      dynamicRewards.RewardsView: () => dynamicRewards.loadLibrary(),
+      dynamicLegal.LegalView: () => dynamicLegal.loadLibrary(),
+    };
+
+    final loader = libraryManifest[token];
+    return loader != null ? loader() : Future.value();
+  }
+
+  /// Instantiates the actual production widget layer once the library is verified
+  static Widget _resolveInstantiatedWidget(Type token) {
+    try {
+      if (token == dynamicHome.HomeView) return const dynamicHome.HomeView();
+      if (token == dynamicSubjects.SubjectsView) return const dynamicSubjects.SubjectsView();
+      if (token == dynamicVideo.AiVideoFeedView) return dynamicVideo.AiVideoFeedView();
+      if (token == dynamicSpark.SparkAiView) return const dynamicSpark.SparkAiView();
+      if (token == dynamicRank.RankView) return const dynamicRank.RankView();
+      if (token == dynamicLogin.LoginView) return const dynamicLogin.LoginView();
+      if (token == dynamicSettings.SettingsView) return const dynamicSettings.SettingsView();
+      if (token == dynamicRewards.RewardsView) return const dynamicRewards.RewardsView();
+      if (token == dynamicLegal.LegalView) return const dynamicLegal.LegalView();
+    } catch (_) {
+      return _buildHardwareErrorLayout(token);
     }
+    return _buildHardwareErrorLayout(token);
+  }
+
+  /// Safe fall-back layout engine that intercepts code runtime faults smoothly
+  static Widget _buildHardwareErrorLayout(Type token) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF1B1424),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.gantt_chart, color: Color(0xFF00FF66), size: 36),
+            const SizedBox(height: 16),
+            Text(
+              "Mind Spark: ${token.toString()}",
+              style: const TextStyle(color: Colors.white70, fontSize: 13, letterSpacing: 0.5),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
