@@ -20,8 +20,17 @@ class MindSparkApp extends StatelessWidget {
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF1B1424),
       ),
-      initialRoute: AppRoutes.splash,
-      onGenerateRoute: AppRoutes.generateRoute,
+      // ✅ FIXED: Pass standard root string identifier here for baseline boot
+      initialRoute: '/', 
+      onGenerateRoute: (RouteSettings settings) {
+        // If it's the absolute first boot, wrap the Splash token type natively
+        if (settings.name == '/') {
+          return AppRoutes.generateRoute(
+            const RouteSettings(arguments: AppRoutes.splash),
+          );
+        }
+        return AppRoutes.generateRoute(settings);
+      },
     );
   }
 }
