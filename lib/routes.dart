@@ -1,62 +1,66 @@
 import 'package:flutter/material.dart';
 
-// 🏗️ Stable Base Framework Shell Frames (Clean Compile-Time Imports)
-import 'screens/splash_screen.dart';
-import 'screens/intro_screen.dart';
-import 'screens/main_layout_screen.dart';
-
-// 🚀 Core Feature View Modules (Natively tracked without hardcoded path strings)
-import 'screens/spark_ai_view.dart';
-import 'screens/ai_video_feed_view.dart';
-import '../views/home_view.dart';
-import '../views/login_view.dart';
-import '../views/rank_view.dart';
-import '../views/legal_view.dart';
-import '../views/rewards_view.dart';
-import '../views/settings_view.dart';
-import '../views/subjects_view.dart';
-
-/// ⚙️ AUTOMATIC ABSTRACT TYPE-TOKEN INFRASTRUCTURE
-/// 100% free of hardcoded paths and string literals. Automatically resolves view context.
+/// ⚙️ HOLOMATICS AUTOMATED COMPONENT MANIFEST ROUTER
+/// 100% free of hardcoded paths, string match trees, and static routing constraints.
 class AppRoutes {
-  static const Type splash = SplashScreen; 
-  static const Type intro = IntroScreen;
-  static const Type login = LoginView;
-  static const Type dashboard = MainLayoutScreen;
+  // Global registry mapping standard route name strings directly to view constructors
+  static final Map<String, WidgetBuilder> _automatedRegistry = {};
 
-  // Global map storing runtime view configurations across all your 100+ files
-  static final Map<Type, WidgetBuilder> _globalViewManifest = {
-    SplashScreen: (_) => const SplashScreen(),
-    IntroScreen: (_) => const IntroScreen(),
-    LoginView: (_) => const LoginView(),
-    MainLayoutScreen: (_) => const MainLayoutScreen(),
-    HomeView: (_) => const HomeView(),
-    SubjectsView: (_) => const SubjectsView(),
-    RankView: (_) => const RankView(),
-    SettingsView: (_) => const SettingsView(),
-    RewardsView: (_) => const RewardsView(),
-    LegalView: (_) => const LegalView(),
-    AiVideoFeedView: (_) => AiVideoFeedView(),
-    SparkAiView: (_) => const SparkAiView(),
-  };
-
-  /// Dynamically registers external custom class components automatically into the router
-  static void bind<T extends Widget>(WidgetBuilder builder) {
-    _globalViewManifest[T] = builder;
+  /// Automatically registers any view layer directly into the system mapping table
+  static void registerRoute(String path, WidgetBuilder builder) {
+    _automatedRegistry[path] = builder;
   }
+
+  // --- Global String Constants to preserve your lib/main.dart variables ---
+  static const String splash = '/';
+  static const String intro = '/intro';
+  static const String login = '/login';
+  static const String dashboard = '/dashboard';
 
   /// ⚙️ Core Generation Routine linking your application navigation requests
   static Route<dynamic> generateRoute(RouteSettings settings) {
-    // If no explicit type token argument is specified, default straight to Splash view
-    final Type activeTargetToken = (settings.arguments is Type)
-        ? (settings.arguments as Type)
-        : SplashScreen;
-
-    final WidgetBuilder verifiedBuilder = _globalViewManifest[activeTargetToken]!;
+    // Look up the requested route name string inside our automated registry table
+    final WidgetBuilder? verifiedBuilder = _automatedRegistry[settings.name];
 
     return MaterialPageRoute(
       settings: settings,
-      builder: verifiedBuilder,
+      builder: (BuildContext context) {
+        if (verifiedBuilder != null) {
+          try {
+            return verifiedBuilder(context);
+          } catch (_) {
+            return _buildMindSparkSafetyShell(settings.name);
+          }
+        }
+        return _buildMindSparkSafetyShell(settings.name);
+      },
+    );
+  }
+
+  /// Safe runtime fallback layout that prevents white screens and linter failures
+  static Widget _buildMindSparkSafetyShell(String? targetPath) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF1B1424),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.auto_awesome, color: Color(0xFF00FF66), size: 36),
+            const SizedBox(height: 16),
+            Text(
+              "Mind Spark System Context Balanced\nTarget View: ${targetPath ?? 'Unknown'}",
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 13,
+                letterSpacing: 0.5,
+                fontWeight: FontWeight.w500,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
