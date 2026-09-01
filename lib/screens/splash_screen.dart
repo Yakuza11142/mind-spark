@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../routes.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -19,10 +18,9 @@ class _SplashScreenState extends State<SplashScreen> {
     // Simulate initialization / loading check
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
-    
-    // ✅ FIXED NEW ROUTE STRING
-Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
 
+    // ✅ FIXED: Routes natively via direct string matching parameters in lib/main.dart
+    Navigator.pushReplacementNamed(context, '/dashboard');
   }
 
   @override
