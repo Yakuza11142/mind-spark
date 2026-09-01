@@ -10,7 +10,6 @@ import '../views/legal_view.dart';
 import '../views/rewards_view.dart';
 import '../views/settings_view.dart';
 import '../views/subjects_view.dart';
-import '../routes.dart';
 
 class MainLayoutScreen extends StatefulWidget {
   const MainLayoutScreen({super.key});
@@ -22,20 +21,18 @@ class MainLayoutScreen extends StatefulWidget {
 class _MainLayoutScreenState extends State<MainLayoutScreen> {
   int _activeTabIndex = 0;
 
-  // String-Free Navigation Tab Matrix mapping types and icons directly
+  // Streamlined Navigation Tab Matrix mapping structural icons cleanly
   late final List<_TabToken> _navigationTabs = [
-    const _TabToken(Icons.home_outlined, Icons.home, HomeView),
-    const _TabToken(Icons.menu_book_outlined, Icons.menu_book, SubjectsView),
-    const _TabToken(Icons.play_circle_outline, Icons.play_circle_filled, AiVideoFeedView),
-    const _TabToken(Icons.auto_awesome_outlined, Icons.auto_awesome, SparkAiView),
-    const _TabToken(Icons.star_border_rounded, Icons.star_rounded, RankView),
+    const _TabToken(Icons.home_outlined, Icons.home),
+    const _TabToken(Icons.menu_book_outlined, Icons.menu_book),
+    const _TabToken(Icons.play_circle_outline, Icons.play_circle_filled),
+    const _TabToken(Icons.auto_awesome_outlined, Icons.auto_awesome),
+    const _TabToken(Icons.star_border_rounded, Icons.star_rounded),
   ];
 
-  void _routeToIsolatedView(Type viewToken) {
-    Navigator.push(
-      context,
-      AppRoutes.generateRoute(RouteSettings(arguments: viewToken)),
-    );
+  // ✅ FIXED: Routes side views cleanly using direct string identifiers matching lib/main.dart
+  void _routeToIsolatedView(String pathString) {
+    Navigator.pushNamed(context, pathString);
   }
 
   @override
@@ -47,12 +44,12 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
       backgroundColor: themePrimaryBg,
       body: IndexedStack(
         index: _activeTabIndex,
-        children: [
-          const HomeView(),
-          const SubjectsView(),
-          const AiVideoFeedView(),
-          const SparkAiView(),
-          const RankView(),
+        children: const [
+          HomeView(),
+          SubjectsView(),
+          AiVideoFeedView(),
+          SparkAiView(),
+          RankView(),
         ],
       ),
       drawer: Drawer(
@@ -66,11 +63,12 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
               child: Icon(Icons.person, size: 36, color: Color(0xFF00FF66)),
             ),
             const SizedBox(height: 32),
-            _buildDrawerTile(Icons.card_membership, () => _routeToIsolatedView(RewardsView)),
-            _buildDrawerTile(Icons.settings, () => _routeToIsolatedView(SettingsView)),
-            _buildDrawerTile(Icons.gavel, () => _routeToIsolatedView(LegalView)),
+            // ✅ FIXED: String-based navigation endpoints
+            _buildDrawerTile(Icons.card_membership, () => _routeToIsolatedView('/rewards_view')),
+            _buildDrawerTile(Icons.settings, () => _routeToIsolatedView('/settings_view')),
+            _buildDrawerTile(Icons.gavel, () => _routeToIsolatedView('/legal_view')),
             const Divider(color: Colors.white10, height: 40),
-            _buildDrawerTile(Icons.logout, () => _routeToIsolatedView(LoginView), isAlert: true),
+            _buildDrawerTile(Icons.logout, () => _routeToIsolatedView('/login'), isAlert: true),
           ],
         ),
       ),
@@ -91,7 +89,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
             return NavigationDestination(
               icon: Icon(tab.defaultIcon, color: Colors.white60),
               selectedIcon: Icon(tab.activeIcon, color: const Color(0xFF00FF66)),
-              label: tab.viewToken.toString(),
+              label: '',
             );
           }).toList(),
         ),
@@ -114,6 +112,5 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
 class _TabToken {
   final IconData defaultIcon;
   final IconData activeIcon;
-  final Type viewToken;
-  const _TabToken(this.defaultIcon, this.activeIcon, this.viewToken);
+  const _TabToken(this.defaultIcon, this.activeIcon);
 }
