@@ -4,11 +4,7 @@ import 'package:flutter/material.dart';
 import 'spark_ai_view.dart';
 import 'ai_video_feed_view.dart';
 import '../views/home_view.dart';
-import '../views/login_view.dart';
 import '../views/rank_view.dart';
-import '../views/legal_view.dart';
-import '../views/rewards_view.dart';
-import '../views/settings_view.dart';
 import '../views/subjects_view.dart';
 
 class MainLayoutScreen extends StatefulWidget {
@@ -21,7 +17,6 @@ class MainLayoutScreen extends StatefulWidget {
 class _MainLayoutScreenState extends State<MainLayoutScreen> {
   int _activeTabIndex = 0;
 
-  // Streamlined Navigation Tab Matrix mapping structural icons cleanly
   late final List<_TabToken> _navigationTabs = [
     const _TabToken(Icons.home_outlined, Icons.home),
     const _TabToken(Icons.menu_book_outlined, Icons.menu_book),
@@ -30,7 +25,6 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
     const _TabToken(Icons.star_border_rounded, Icons.star_rounded),
   ];
 
-  // ✅ FIXED: Routes side views cleanly using direct string identifiers matching lib/main.dart
   void _routeToIsolatedView(String pathString) {
     Navigator.pushNamed(context, pathString);
   }
@@ -63,7 +57,6 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
               child: Icon(Icons.person, size: 36, color: Color(0xFF00FF66)),
             ),
             const SizedBox(height: 32),
-            // ✅ FIXED: String-based navigation endpoints
             _buildDrawerTile(Icons.card_membership, () => _routeToIsolatedView('/rewards_view')),
             _buildDrawerTile(Icons.settings, () => _routeToIsolatedView('/settings_view')),
             _buildDrawerTile(Icons.gavel, () => _routeToIsolatedView('/legal_view')),
@@ -102,7 +95,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
       leading: Icon(icon, color: isAlert ? Colors.redAccent : const Color(0xFF00FF66)),
       trailing: const Icon(Icons.chevron_right, color: Colors.white24, size: 18),
       onTap: () {
-        Navigator.pop(context); // Closes drawer safely
+        Navigator.pop(context);
         onTap();
       },
     );
