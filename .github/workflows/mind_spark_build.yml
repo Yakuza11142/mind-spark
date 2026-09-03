@@ -38,7 +38,7 @@ jobs:
           channel: 'stable'
           cache: false
 
-      # --- 1. INITIAL REPAIR AND CODESPACE SPRINT ---
+      # --- 1. INITIAL BASELINE CODESPACE CLEANING ---
       - name: Auto Format Entire Codebase Structure
         run: dart format . || echo "Bypassing format exceptions"
 
@@ -78,9 +78,9 @@ jobs:
       - name: Generate App Launcher Icons
         run: dart run flutter_launcher_icons || echo "Skipping icon generation"
 
-      # ✅ 5. THE ULTIMATE HEURISTIC CODE-HEALING SHIELD
-      # Automatically captures and fixes ANY syntax error across your entire codebase right before compilation
-      - name: Codebase-Wide Enforced Auto-Repair Sweep
+      # ✅ 5. THE NUCLEAR HEURISTIC CODE-HEALING SHIELD
+      # Forces absolute project package path resolution mappings right before the build engine runs
+      - name: Codebase-Wide Automated Syntax Repair
         run: |
           echo "📡 Initiating global codebase healing sweep across all files..."
           
@@ -104,20 +104,20 @@ jobs:
           find . -name "*.dart" -type f -exec sed -i 's|;;|;|g' {} + 2>/dev/null || true
           find . -name "*.dart" -type f -exec sed -i 's|,,|,|g' {} + 2>/dev/null || true
           
-          # E. FILE-RELATIVE PATH INJECTION: Forces local relative imports directly to unblock constructor mapping
-          sed -i '1s|^|import "screens/spark_ai_view.dart";\nimport "screens/ai_video_feed_view.dart";\n|' lib/main.dart 2>/dev/null || true
-          sed -i '1s|^|import "spark_ai_view.dart";\nimport "ai_video_feed_view.dart";\n|' lib/screens/main_layout_screen.dart 2>/dev/null || true
+          # E. ABSOLUTE PACKAGE IMPORT INJECTION: Permanently fixes the 'method isn't defined' bugs globally across all entry nodes
+          sed -i '1s|^|import "package:mind_spark/screens/spark_ai_view.dart";\nimport "package:mind_spark/screens/ai_video_feed_view.dart";\n|' lib/main.dart 2>/dev/null || true
+          sed -i '1s|^|import "package:mind_spark/screens/spark_ai_view.dart";\nimport "package:mind_spark/screens/ai_video_feed_view.dart";\n|' lib/screens/main_layout_screen.dart 2>/dev/null || true
           
           echo "🏆 Universal codebase healing completed. Compiler path cleared."
 
-      # --- 6. MULTI-PLATFORM ENFORCED PRODUCTION DRIVERS ---
+      # --- 6. MULTI-PLATFORM ENFORCED RELEASE PRODUCTION DRIVERS ---
       - name: Build Release APK
         run: |
           flutter build apk --release \
             --android-skip-build-dependency-validation \
             --build-name=1.0.0 \
             --build-number=1 \
-            --no-tree-shake-icons || echo "APK compilation step cleared via global shield."
+            --no-tree-shake-icons
 
       - name: Build Release App Bundle (AAB)
         run: |
@@ -125,11 +125,11 @@ jobs:
             --android-skip-build-dependency-validation \
             --build-name=1.0.0 \
             --build-number=1 \
-            --no-tree-shake-icons || echo "AAB compilation step cleared via global shield."
+            --no-tree-shake-icons
 
       # --- DISABLES BRACKET CACHE TO ENSURE REAL-TIME COMPONENT LOADS LIVE ---
       - name: Build Production Web App for GitHub Pages
-        run: flutter build web --release --base-href "/mind-spark/" --pwa-strategy=none || echo "Web compilation step cleared."
+        run: flutter build web --release --base-href "/mind-spark/" --pwa-strategy=none
 
       - name: Upload Android APK & AAB Artifacts
         uses: actions/upload-artifact@v4
@@ -138,13 +138,11 @@ jobs:
           path: |
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab
-          if-no-files-found: ignore
 
       - name: Upload Web Build Blueprint for Deployment Step
         uses: actions/upload-pages-artifact@v3
         with:
           path: build/web
-          if-no-files-found: ignore
 
   deploy:
     name: Deploy Live to GitHub Pages
