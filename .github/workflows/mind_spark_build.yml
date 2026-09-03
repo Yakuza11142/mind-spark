@@ -78,11 +78,23 @@ jobs:
       - name: Generate App Launcher Icons
         run: dart run flutter_launcher_icons || echo "Skipping icon generation"
 
+      # ✅ FIXED: INJECTED BUILD ARGUMENTS TO OVERRIDE COMPILER CONSTANT CHECKS
       - name: Build Release APK
-        run: flutter build apk --release --android-skip-build-dependency-validation
+        run: |
+          flutter build apk --release \
+            --android-skip-build-dependency-validation \
+            --build-name=1.0.0 \
+            --build-number=1 \
+            --no-tree-shake-icons
 
+      # ✅ FIXED: INJECTED BUILD ARGUMENTS TO OVERRIDE COMPILER CONSTANT CHECKS
       - name: Build Release App Bundle (AAB)
-        run: flutter build appbundle --release --android-skip-build-dependency-validation
+        run: |
+          flutter build appbundle --release \
+            --android-skip-build-dependency-validation \
+            --build-name=1.0.0 \
+            --build-number=1 \
+            --no-tree-shake-icons
 
       # --- FIXED: DISABLES CACHE VIA PWA STRATEGY SO LIVE CODE LOADS INSTANTLY ---
       - name: Build Production Web App for GitHub Pages
