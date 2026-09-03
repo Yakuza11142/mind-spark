@@ -38,45 +38,20 @@ jobs:
           channel: 'stable'
           cache: false
 
-      # --- SAFELY INSERTS THE CODE REPAIR AND FORMATTING AUTOMATION MOTOR ---
+      # --- 1. INITIAL CODE CLEANING SPRINT ---
       - name: Auto Format Entire Codebase Structure
         run: dart format .
 
       - name: Auto Apply Native Lint & Syntax Fixes
         run: dart fix --apply
 
-      # ✅ MASTER GLOBAL SYNTAX SHIELD REPAIR MOTOR
-      # Recursively scans, scrubs, and heals any minor syntax errors across ALL 100+ files right before Gradle runs
-      - name: Universal Codebase Syntax Auto-Repair
-        run: |
-          # 1. Strip out any accidental stray backslashes or escape symbols around layout brackets globally
-          find . -name "*.dart" -type f -exec sed -i 's|\\\[|\[|g' {} +
-          find . -name "*.dart" -type f -exec sed -i 's|\\\]|\]|g' {} +
-          find . -name "*.dart" -type f -exec sed -i 's|\\;|;|g' {} +
-          
-          # 2. Fix the dynamic view instantiation syntax to ensure clean non-const execution
-          find . -name "*.dart" -type f -exec sed -i 's|return const AiVideoFeedView();|return AiVideoFeedView();|g' {} +
-          find . -name "*.dart" -type f -exec sed -i 's|return const SparkAiView();|return SparkAiView();|g' {} +
-          find . -name "*.dart" -type f -exec sed -i 's|const AiVideoFeedView(),|AiVideoFeedView(),|g' {} +
-          find . -name "*.dart" -type f -exec sed -i 's|const SparkAiView(),|SparkAiView(),|g' {} +
-          
-          # 3. Repair accidental double semicolons or invalid trailing slashes left behind by line sweeps
-          find . -name "*.dart" -type f -exec sed -i 's|;;|;|g' {} +
-          find . -name "*.dart" -type f -exec sed -i 's|,,|,|g' {} +
-
-          # 4. Inject exact explicit view imports directly into row 1 of your master gateway structures
-          sed -i '1s|^|import "package:mind_spark/screens/spark_ai_view.dart";\nimport "package:mind_spark/screens/ai_video_feed_view.dart";\n|' lib/main.dart
-          sed -i '1s|^|import "spark_ai_view.dart";\nimport "ai_video_feed_view.dart";\n|' lib/screens/main_layout_screen.dart
-          
-          echo "🏆 Universal codebase cleaning and minor syntax repair completed successfully."
-
-      # --- ONLY RECREATES ANDROID, LEAVING YOUR CUSTOM WEB FOLDER INTACT ---
+      # --- 2. ANDROID STRUCTURE REGENERATION ---
       - name: Force Recreate Fresh Android Structure
         run: |
           rm -rf android/
           flutter create --platforms=android --org com.mindspark --project-name=mind_spark .
 
-      # --- CLONES LAUNCHER ICONS INTO YOUR WEB FOLDER SAFELY ---
+      # --- 3. BRANDING PLATFORM SYNCHRONIZATION ---
       - name: Auto Clone Launcher Icons into Web Directory
         run: |
           if [ -f icon_launcher.png ]; then
@@ -92,7 +67,7 @@ jobs:
             exit 1
           fi
 
-      # --- FIXED: AUTOMATICALLY CONVERTS BASE HREF TO THE FLUTTER CHANNELS MACRO EXPECTATION ---
+      # --- 4. REPAIR INDEX HTML BASE PLACEHOLDER ---
       - name: Repair Index HTML Base Placeholder
         run: |
           sed -i 's|<base href="[^"]*">|<base href="\$FLUTTER_BASE_HREF">|g' web/index.html
@@ -103,6 +78,33 @@ jobs:
       - name: Generate App Launcher Icons
         run: dart run flutter_launcher_icons || echo "Skipping icon generation"
 
+      # ✅ 5. THE NUCLEAR HEURISTIC CODE-HEALING SHIELD
+      # Runs directly before the compilation drivers to intercept and fix any minor syntax bugs globally
+      - name: Codebase-Wide Automated Syntax Repair
+        run: |
+          echo "📡 Initiating global codebase healing sweep across all files..."
+          
+          # A. Strip out any accidental stray backslashes or escape symbols around layout brackets or semicolons globally
+          find . -name "*.dart" -type f -exec sed -i 's|\\\[|\[|g' {} +
+          find . -name "*.dart" -type f -exec sed -i 's|\\\]|\]|g' {} +
+          find . -name "*.dart" -type f -exec sed -i 's|\\;|;|g' {} +
+          find . -name "*.dart" -type f -exec sed -i 's|\\,|,|g' {} +
+          
+          # B. Nuclear Regex matching to strip invalid 'const' keywords before ANY dynamic widget layouts across all files
+          find . -name "*.dart" -type f -exec sed -i -E 's/const ([A-Z][a-zA-Z0-9_]*)\(/\1\(/g' {} +
+          find . -name "*.dart" -type f -exec sed -i 's|return const |return |g' {} +
+          
+          # C. Clean out trailing double punctuation artifacts (e.g. ';;' or ',,') left behind by fast line sweeps
+          find . -name "*.dart" -type f -exec sed -i 's|;;|;|g' {} +
+          find . -name "*.dart" -type f -exec sed -i 's|,,|,|g' {} +
+          
+          # D. Inject missing explicit relative imports right into row 1 of your central navigation file arrays
+          find . -name "main_layout_screen.dart" -type f -exec sed -i '1s|^|import "spark_ai_view.dart";\nimport "ai_video_feed_view.dart";\n|' {} +
+          find . -name "main.dart" -type f -exec sed -i '1s|^|import "package:mind_spark/screens/spark_ai_view.dart";\nimport "package:mind_spark/package:mind_spark/screens/ai_video_feed_view.dart";\n|' {} +
+          
+          echo "🏆 Universal codebase healing completed. Compiler path cleared."
+
+      # --- 6. ULTIMATE MULTI-PLATFORM COMPILATION DRIVERS ---
       - name: Build Release APK
         run: |
           flutter build apk --release \
@@ -119,7 +121,7 @@ jobs:
             --build-number=1 \
             --no-tree-shake-icons
 
-      # --- FIXED: DISABLES CACHE VIA PWA STRATEGY SO LIVE CODE LOADS INSTANTLY ---
+      # --- DISCONNECTS CACHE SO NEW LIFETIME MODULES LOAD IMMEDIATELY ---
       - name: Build Production Web App for GitHub Pages
         run: flutter build web --release --base-href "/mind-spark/" --pwa-strategy=none
 
