@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
+import 'dart:math' as math;
 import 'package:flutter/services.dart'; 
 
 class AIVideoFeedView extends StatefulWidget {
@@ -20,7 +21,7 @@ class _AIVideoFeedViewState extends State<AIVideoFeedView> {
   final Map<int, bool> _likedVideosCache = {};
   final Map<int, bool> _savedVideosCache = {};
   final Map<int, int> _likeCountsCache = {};
-  
+
   int? _currentlyPlayingIndex;
 
   // =========================================================
@@ -58,7 +59,7 @@ class _AIVideoFeedViewState extends State<AIVideoFeedView> {
         'announce',
         {'message': narrationText},
       );
-      
+
       HapticFeedback.lightImpact();
     } catch (e) {
       // Gracefully handles environment mismatch without crashing runtime thread
@@ -117,7 +118,7 @@ class _AIVideoFeedViewState extends State<AIVideoFeedView> {
                     final int calculatedSeed = index + _sessionOffset;
                     final int pseudoRandomHash = (calculatedSeed * 1234567) % 999983;
                     final String cleanedQuery = _searchQuery.toLowerCase();
-                    
+
                     // Style determined dynamically from character code lengths
                     final bool wantsRealism = cleanedQuery.hashCode.isEven && _searchQuery.isNotEmpty;
 
@@ -172,7 +173,7 @@ class _AIVideoFeedViewState extends State<AIVideoFeedView> {
                                         ),
                                       ),
                                     ),
-                                    
+
                                     Center(
                                       child: Container(
                                         padding: const EdgeInsets.all(12),
@@ -338,12 +339,13 @@ class _AIVideoFeedViewState extends State<AIVideoFeedView> {
             Icon(Icons.shield_outlined, size: 48, color: theme.colorScheme.error),
             const SizedBox(height: 20),
             Text(
-              theme.colorScheme.error.toString(), 
+              'Content restricted by safety validation filter.', 
               style: TextStyle(
                 color: theme.textTheme.titleMedium?.color, 
                 fontSize: 16, 
                 fontWeight: FontWeight.bold,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -393,7 +395,7 @@ class HighDefAdaptivePainter extends CustomPainter {
       paint.style = PaintingStyle.stroke;
       paint.strokeWidth = 0.5;
       paint.color = themeColor.withOpacity(0.12);
-      
+
       double horizonY = size.height * 0.55;
       for (double i = 0; i <= size.width; i += 20) {
         canvas.drawLine(Offset(size.width * 0.5, horizonY), Offset(i, size.height), paint);
@@ -408,11 +410,12 @@ class HighDefAdaptivePainter extends CustomPainter {
       const double precisionStep8K = 2.5;
       final pathHills = Path()..moveTo(0, size.height);
       paint.color = themeColor.withOpacity(0.15);
-      
+
       for (double x = 0; x <= size.width; x += precisionStep8K) {
         double amplitude = 14.0 + (seed % 12);
         double frequency = 0.012 + (seed % 4) * 0.004;
-        double y = size.height * 0.62 + (amplitude * (double.tryParse(((x + seed) * frequency).toString()) ?? 0.0));
+        // Fixed: Replaced inefficient double.tryParse string conversions with standard math.sin function
+        double y = size.height * 0.62 + (amplitude * math.sin((x + seed) * frequency));
         pathHills.lineTo(x, y);
       }
       pathHills.lineTo(size.width, size.height);
@@ -433,7 +436,7 @@ class HighDefAdaptivePainter extends CustomPainter {
       textDirection: TextDirection.ltr,
     );
     textPainter.layout();
-    
+
     double driftX = 12 + (seed % 40).toDouble();
     textPainter.paint(canvas, Offset(driftX, 12));
     textPainter.paint(canvas, Offset((size.width - textPainter.width) / 2, (size.height - textPainter.height) / 2));
