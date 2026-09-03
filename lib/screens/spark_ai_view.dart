@@ -13,10 +13,10 @@ class SparkAIView extends StatefulWidget {
 class _SparkAIViewState extends State<SparkAIView> with TickerProviderStateMixin {
   final TextEditingController _omniController = TextEditingController();
   String _activePromptToken = '';
-  
+
   Offset _panOffset = Offset.zero;
   bool _hasGenerated = false;
-  
+
   // 🎛️ Mode Configuration State Selector
   bool _isAetherLiveMode = false; 
 
@@ -106,6 +106,9 @@ class _SparkAIViewState extends State<SparkAIView> with TickerProviderStateMixin
     final double canvasWidth = mediaQuery.size.width;
     final double canvasHeight = mediaQuery.size.height;
 
+    // Fixed: Safely resolve fontFamily string without relying on uninitialized typography styles
+    final String fallbackFontName = theme.textTheme.bodyLarge?.fontFamily ?? 'Text Core';
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
@@ -150,7 +153,7 @@ class _SparkAIViewState extends State<SparkAIView> with TickerProviderStateMixin
               left: (canvasWidth * 0.05) + _panOffset.dx,
               top: (canvasHeight * 0.12) + _panOffset.dy,
               child: _buildOmniCard(
-                theme, mediaQuery, widthRatio: 0.38, title: theme.textTheme.bodyLarge?.fontFamily ?? 'Text Core',
+                theme, mediaQuery, widthRatio: 0.38, title: fallbackFontName,
                 child: Text(_activePromptToken, style: TextStyle(color: theme.textTheme.bodyMedium?.color, fontSize: 11)),
               ),
             ),
