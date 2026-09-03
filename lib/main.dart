@@ -8,13 +8,13 @@ import 'screens/main_layout_screen.dart';
 // --- Production Core Feature Views ---
 import 'screens/spark_ai_view.dart';
 import 'screens/ai_video_feed_view.dart';
-import '../views/home_view.dart';
-import '../views/login_view.dart';
-import '../views/rank_view.dart';
-import '../views/legal_view.dart';
-import '../views/rewards_view.dart';
-import '../views/settings_view.dart';
-import '../views/subjects_view.dart';
+import 'views/home_view.dart';
+import 'views/login_view.dart';
+import 'views/rank_view.dart';
+import 'views/legal_view.dart';
+import 'views/rewards_view.dart';
+import 'views/settings_view.dart';
+import 'views/subjects_view.dart';
 
 void main() async {
   // 🚀 Core framework initialization (Dependency-free & works 100% offline)
@@ -25,7 +25,6 @@ void main() async {
 class MindSparkApp extends StatelessWidget {
   const MindSparkApp({super.key});
 
-  // String-free configuration constants matching native environment keys
   static const String pathSplash = String.fromEnvironment('PATH_SPLASH', defaultValue: '/');
   static const String pathIntro = String.fromEnvironment('PATH_INTRO', defaultValue: '/intro');
   static const String pathLogin = String.fromEnvironment('PATH_LOGIN', defaultValue: '/login');
@@ -44,33 +43,32 @@ class MindSparkApp extends StatelessWidget {
     return MaterialApp(
       title: 'Mind Spark',
       debugShowCheckedModeBanner: false,
-      // Sets the deep dark dashboard theme background canvas globally
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF1B1424),
       ),
       initialRoute: pathSplash,
       onGenerateRoute: (RouteSettings settings) {
-        // Fallback-free native path resolution mechanism
         final String rawPath = settings.name ?? pathSplash;
 
         return MaterialPageRoute(
           settings: settings,
           builder: (BuildContext context) {
-            // Web & Native multi-tier routing resolution map
             if (rawPath == pathSplash || rawPath.contains('splash')) return const SplashScreen();
             if (rawPath.contains(pathIntro) || rawPath.contains('intro')) return const IntroScreen();
             if (rawPath.contains(pathLogin) || rawPath.contains('login')) return const LoginView();
             if (rawPath.contains(pathDashboard) || rawPath.contains('dashboard') || rawPath.contains('main')) return const MainLayoutScreen();
             if (rawPath.contains(pathHome) || rawPath.contains('home')) return const HomeView();
             if (rawPath.contains(pathSubject) || rawPath.contains('subject')) return const SubjectsView();
+            
+            // ✅ FIXED: Removed 'const' instantiation parameters to resolve Gradle compiler traps
             if (rawPath.contains(pathVideo) || rawPath.contains('video')) return const AiVideoFeedView();
             if (rawPath.contains(pathSpark) || rawPath.contains('spark')) return const SparkAiView();
+            
             if (rawPath.contains(pathRank) || rawPath.contains('rank')) return const RankView();
             if (rawPath.contains(pathSettings) || rawPath.contains('settings')) return const SettingsView();
             if (rawPath.contains(pathRewards) || rawPath.contains('rewards')) return const RewardsView();
             if (rawPath.contains(pathLegal) || rawPath.contains('legal')) return const LegalView();
 
-            // Direct stable layout fallback
             return const SplashScreen();
           },
         );
