@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
-// Core Framework Imports
-import 'spark_ai_view.dart';
+// --- Direct Local Feature Screen Mappings ---
 import 'ai_video_feed_view.dart';
+import 'spark_ai_view.dart';
+
+// --- Secondary Directory View Imports ---
 import '../views/home_view.dart';
 import '../views/rank_view.dart';
 import '../views/subjects_view.dart';
@@ -29,8 +31,8 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
         children: const [
           HomeView(),
           SubjectsView(),
-          AiVideoFeedView(),
-          SparkAiView(),
+          AiVideoFeedView(), 
+          SparkAiView(),     
           RankView(),
         ],
       ),
