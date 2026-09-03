@@ -17,18 +17,6 @@ class MainLayoutScreen extends StatefulWidget {
 class _MainLayoutScreenState extends State<MainLayoutScreen> {
   int _activeTabIndex = 0;
 
-  late final List<_TabToken> _navigationTabs = [
-    const _TabToken(Icons.home_outlined, Icons.home),
-    const _TabToken(Icons.menu_book_outlined, Icons.menu_book),
-    const _TabToken(Icons.play_circle_outline, Icons.play_circle_filled),
-    const _TabToken(Icons.auto_awesome_outlined, Icons.auto_awesome),
-    const _TabToken(Icons.star_border_rounded, Icons.star_rounded),
-  ];
-
-  void _routeToIsolatedView(String pathString) {
-    Navigator.pushNamed(context, pathString);
-  }
-
   @override
   Widget build(BuildContext context) {
     const Color themePrimaryBg = Color(0xFF1B1424);
@@ -46,64 +34,21 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
           RankView(),
         ],
       ),
-      drawer: Drawer(
-        backgroundColor: themePrimaryBg,
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 48),
-          children: [
-            const CircleAvatar(
-              radius: 36,
-              backgroundColor: Color(0xFF382944),
-              child: Icon(Icons.person, size: 36, color: Color(0xFF00FF66)),
-            ),
-            const SizedBox(height: 32),
-            _buildDrawerTile(Icons.card_membership, () => _routeToIsolatedView('/rewards_view')),
-            _buildDrawerTile(Icons.settings, () => _routeToIsolatedView('/settings_view')),
-            _buildDrawerTile(Icons.gavel, () => _routeToIsolatedView('/legal_view')),
-            const Divider(color: Colors.white10, height: 40),
-            _buildDrawerTile(Icons.logout, () => _routeToIsolatedView('/login'), isAlert: true),
-          ],
-        ),
-      ),
-      bottomNavigationBar: Theme(
-        data: Theme.of(context).copyWith(
-          navigationBarTheme: const NavigationBarThemeData(
-            indicatorColor: Color(0xFF382944),
-          ),
-        ),
-        child: NavigationBar(
-          selectedIndex: _activeTabIndex,
-          backgroundColor: themeNavBarBg,
-          elevation: 0,
-          height: 70,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
-          onDestinationSelected: (index) => setState(() => _activeTabIndex = index),
-          destinations: _navigationTabs.map((tab) {
-            return NavigationDestination(
-              icon: Icon(tab.defaultIcon, color: Colors.white60),
-              selectedIcon: Icon(tab.activeIcon, color: const Color(0xFF00FF66)),
-              label: '',
-            );
-          }).toList(),
-        ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _activeTabIndex,
+        backgroundColor: themeNavBarBg,
+        elevation: 0,
+        height: 70,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+        onDestinationSelected: (index) => setState(() => _activeTabIndex = index),
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home, color: Color(0xFF00FF66)), label: ''),
+          NavigationDestination(icon: Icon(Icons.menu_book_outlined), selectedIcon: Icon(Icons.menu_book, color: Color(0xFF00FF66)), label: ''),
+          NavigationDestination(icon: Icon(Icons.play_circle_outline), selectedIcon: Icon(Icons.play_circle_filled, color: Color(0xFF00FF66)), label: ''),
+          NavigationDestination(icon: Icon(Icons.auto_awesome_outlined), selectedIcon: Icon(Icons.auto_awesome, color: Color(0xFF00FF66)), label: ''),
+          NavigationDestination(icon: Icon(Icons.star_border_rounded), selectedIcon: Icon(Icons.star_rounded, color: Color(0xFF00FF66)), label: ''),
+        ],
       ),
     );
   }
-
-  Widget _buildDrawerTile(IconData icon, VoidCallback onTap, {bool isAlert = false}) {
-    return ListTile(
-      leading: Icon(icon, color: isAlert ? Colors.redAccent : const Color(0xFF00FF66)),
-      trailing: const Icon(Icons.chevron_right, color: Colors.white24, size: 18),
-      onTap: () {
-        Navigator.pop(context);
-        onTap();
-      },
-    );
-  }
-}
-
-class _TabToken {
-  final IconData defaultIcon;
-  final IconData activeIcon;
-  const _TabToken(this.defaultIcon, this.activeIcon);
 }
