@@ -38,7 +38,7 @@ jobs:
           channel: 'stable'
           cache: false
 
-      # --- 1. INITIAL RUNTIME CLEANING SPRINT (Aggressive fixing removed) ---
+      # --- 1. INITIAL RUNTIME CLEANING SPRINT (Aggressive linter fixing removed) ---
       - name: Auto Format Entire Codebase Structure
         run: dart format .
 
@@ -75,8 +75,8 @@ jobs:
       - name: Generate App Launcher Icons
         run: dart run flutter_launcher_icons || echo "Skipping icon generation"
 
-      # ✅ 5. Codebase-Wide Automated Syntax Repair
-      # Safely runs right before compilation to ensure clean file architectures
+      # ✅ 5. THE NUCLEAR HEURISTIC CODE-HEALING SHIELD
+      # Safely runs right before compilation to ensure clean file architectures without needing lib/routes.dart
       - name: Codebase-Wide Automated Syntax Repair
         run: |
           echo "📡 Initiating global codebase healing sweep across all files..."
@@ -95,7 +95,7 @@ jobs:
           find . -name "*.dart" -type f -exec sed -i 's|const AiVideoFeedView|AiVideoFeedView|g' {} +
           find . -name "*.dart" -type f -exec sed -i 's|const SparkAiView|SparkAiView|g' {} +
           
-          # D. Robust relative file rewriting to force absolute package visibility for constructors
+          # D. AUTOMATIC SINGLE-FILE INJECTION: Forces absolute compiler package visibility for constructors directly in main.dart
           sed -i '1s|^|import "package:mind_spark/screens/spark_ai_view.dart";\nimport "package:mind_spark/screens/ai_video_feed_view.dart";\n|' lib/main.dart
           sed -i '1s|^|import "package:mind_spark/screens/spark_ai_view.dart";\nimport "package:mind_spark/screens/ai_video_feed_view.dart";\n|' lib/screens/main_layout_screen.dart
           
