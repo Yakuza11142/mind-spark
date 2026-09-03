@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
+// --- Production Core Feature Views (Manually Injected Relative Mappings) ---
+import 'screens/ai_video_feed_view.dart';
+import 'screens/spark_ai_view.dart';
+
 // --- Primary Staging Screen Modules ---
 import 'screens/splash_screen.dart';
 import 'screens/intro_screen.dart';
 import 'screens/main_layout_screen.dart';
 
-// --- Production Core Feature Views ---
-import 'screens/spark_ai_view.dart';
-import 'screens/ai_video_feed_view.dart';
+// --- Production Background Views ---
 import 'views/home_view.dart';
 import 'views/login_view.dart';
 import 'views/rank_view.dart';
@@ -33,7 +35,6 @@ class MindSparkApp extends StatelessWidget {
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF1B1424),
       ),
-      // ✅ FIXED: Using direct baseline string path identifiers natively
       initialRoute: '/',
       onGenerateRoute: (RouteSettings settings) {
         final String rawPath = settings.name ?? '/';
@@ -41,7 +42,6 @@ class MindSparkApp extends StatelessWidget {
         return MaterialPageRoute(
           settings: settings,
           builder: (BuildContext context) {
-            // Web & Native multi-tier routing resolution map
             if (rawPath == '/' || rawPath.contains('splash')) return const SplashScreen();
             if (rawPath.contains('intro')) return const IntroScreen();
             if (rawPath.contains('login')) return const LoginView();
