@@ -25,27 +25,30 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # ☕ Configures Java 21 to support latest Android Gradle Plugins safely
       - name: Set up Java Development Kit
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '21'
 
+      # 🚀 Targets the absolute latest stable production Flutter channel automatically
       - name: Set up Flutter SDK
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.1'
           channel: 'stable'
-          cache: false
+          cache: true
 
-      # --- 1. INITIAL RUNTIME CLEANING & STRUCTURE SPRINT ---
-      - name: Format Code & Regenerate Android Project
+      # --- 1. INITIAL RUNTIME CLEANING & SAFE REGENERATION ---
+      # ✅ PROTECTS YOUR WEB FILES: Only recreates the android directory, leaving your custom web files entirely alone.
+      - name: Format Code & Safely Recreate Android Directory
         run: |
           dart format . || echo "Bypassing formatting irregularities"
           rm -rf android/
           flutter create --platforms=android --org com.mindspark --project-name=mind_spark . || true
 
       # --- 2. BRANDING PLATFORM ASSET RECOVERY ---
+      # ✅ CLONES ICONS: Injects your launcher icons directly into the web structure as requested
       - name: Auto Clone Launcher Icons into Web Directory
         run: |
           if [ -f icon_launcher.png ]; then
@@ -64,16 +67,18 @@ jobs:
       # --- 3. REPAIR INDEX HTML & CONFIGURE DEPENDENCIES ---
       - name: Repair Index HTML & Force Local SDK Resolution
         run: |
+          # Safe fallback to make sure base reference matching is exact for GitHub Pages sub-folders
           sed -i 's|<base href="[^"]*">|<base href="\$FLUTTER_BASE_HREF">|g' web/index.html || true
-          flutter config --no-enable-web
           
-          # 🛡️ THE DEPENDENCY OVERRIDE SHIELD: Tells the engine where the local web files live natively
+          # Enable Web Compilation Natively on the SDK profile
+          flutter config --enable-web
+          
+          # 🛡️ THE DEPENDENCY OVERRIDE SHIELD: Keeps internal packages anchored to your native local SDK folder
           echo "" >> pubspec.yaml
           echo "dependency_overrides:" >> pubspec.yaml
           echo "  flutter_web_plugins:" >> pubspec.yaml
           echo "    sdk: flutter" >> pubspec.yaml
           
-          # Clean hidden stale environment locks completely
           rm -rf .dart_tool/
           rm -f pubspec.lock
           flutter pub get
@@ -165,15 +170,20 @@ jobs:
           echo "🏆 Unified compilation sweep completed successfully."
 
       # --- 5. MULTI-PLATFORM ENFORCED PRODUCTION DRIVERS ---
-      # 🌐 TARGET 1: Build Production Web App FIRST
+      # 🌐 TARGET 1: Build Production Web App FIRST using your pre-existing files
       - name: Build Production Web App for GitHub Pages
-        run: flutter build web --release --base-href "/mind-spark/" --pwa-strategy=none
+        run: |
+          flutter build web --release --base-href "/mind-spark/"
+          
+          # Modern, native caching bypass: drops the deprecated service worker safely
+          echo "Patching bootstrap config..."
+          sed -i 's|serviceWorkerVersion:|// serviceWorkerVersion:|g' build/web/index.html || true
+          rm -f build/web/flutter_service_worker.js || true
 
       # 🤖 TARGET 2: Build Release APK SECOND
       - name: Build Release APK
         run: |
           flutter build apk --release \
-            --android-skip-build-dependency-validation \
             --build-name=1.0.0 \
             --build-number=1 \
             --no-tree-shake-icons
@@ -182,7 +192,6 @@ jobs:
       - name: Build Release App Bundle (AAB)
         run: |
           flutter build appbundle --release \
-            --android-skip-build-dependency-validation \
             --build-name=1.0.0 \
             --build-number=1 \
             --no-tree-shake-icons
