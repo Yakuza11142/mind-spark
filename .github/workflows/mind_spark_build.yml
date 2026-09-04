@@ -155,9 +155,10 @@ jobs:
           echo "🏆 Unified compilation sweep completed successfully."
 
       # --- 5. MULTI-PLATFORM ENFORCED PRODUCTION DRIVERS ---
+      # Removed the invalid --offline flags from compiler commands
       - name: Build Release APK
         run: |
-          flutter build apk --release --offline \
+          flutter build apk --release \
             --android-skip-build-dependency-validation \
             --build-name=1.0.0 \
             --build-number=1 \
@@ -165,7 +166,7 @@ jobs:
 
       - name: Build Release App Bundle (AAB)
         run: |
-          flutter build appbundle --release --offline \
+          flutter build appbundle --release \
             --android-skip-build-dependency-validation \
             --build-name=1.0.0 \
             --build-number=1 \
