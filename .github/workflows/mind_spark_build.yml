@@ -64,13 +64,14 @@ jobs:
             exit 1
           fi
 
-      # --- 4. REPAIR INDEX HTML BASE PLACEHOLDER ---
+      # --- 4. REPAIR INDEX HTML BASE PLACEHOLDER & DEPENDENCIES ---
       - name: Repair Index HTML Base Placeholder
         run: |
           sed -i 's|<base href="[^"]*">|<base href="\$FLUTTER_BASE_HREF">|g' web/index.html || true
 
-      - name: Install Dependencies
-        run: flutter pub get || true
+      # ✅ FIXED DEPENDENCY SOLVER: Resolves local SDK web plugin routing structures without pub.dev server errors
+      - name: Install SDK Framework Plugins
+        run: flutter pub get --offline || flutter pub get
 
       # 🩹 CODE CORRECTIONS (LINTS & WARNINGS)
       - name: Auto Clean and Apply Codebase Corrections
