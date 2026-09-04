@@ -68,7 +68,7 @@ jobs:
       - name: Repair Index HTML & Force Local SDK Resolution
         run: |
           # Safe fallback to make sure base reference matching is exact for GitHub Pages sub-folders
-          sed -i 's|<base href="[^"]*">|<base href="\$FLUTTER_BASE_HREF">|g' web/index.html || true
+          sed -i 's|<base href="[^"]*">|<base href="$FLUTTER_BASE_HREF">|g' web/index.html || true
           
           # Enable Web Compilation Natively on the SDK profile
           flutter config --enable-web
@@ -90,7 +90,7 @@ jobs:
           dart fix --apply || echo "Continuing build with remaining non-breaking issues"
           dart run flutter_launcher_icons || echo "Skipping icon generation"
 
-      # ✅ 4. HIGH-SPEED FILTERED AUTOMATED CONNECTION ASSEMBLY (STRICT SCREEN FILTERS)
+      # ✅ 4. HIGH-SPEED FILTERED AUTOMATED CONNECTION ASSEMBLY (ANTI-CRASH)
       - name: Cloud-Side Automated Connection Assembly
         run: |
           echo "📡 Initiating filtered codebase optimization pass..."
@@ -100,21 +100,16 @@ jobs:
           import 'package:flutter/material.dart';
           EOF
 
-          # 1. Map routing imports and apply safe corrections exclusively for strict screen modules
+          # 1. Map routing imports and apply safe corrections
           while read -r file; do
             clean_import_path="${file#lib/}"
             if [[ "$clean_import_path" == "main.dart" || "$clean_import_path" == "generated_router.dart" ]]; then
               continue
             fi
 
-            # 🛡️ STRICT WORKSPACE FILTER: Only allow files explicitly inside a screens/views folder, OR ending in _screen.dart/_view.dart
-            if [[ ! "$file" =~ (screens/|views/|pages/) && ! "$file" =~ (_screen\.dart|_view\.dart|_page\.dart) ]]; then
-              continue
-            fi
-
-            # Strict exclusion guard for widget subcomponents and fragments
+            # Skip small UI sub-components completely from the routing list
             filename_lc=$(basename "$file" .dart | tr '[:upper:]' '[:lower:]')
-            if [[ "$filename_lc" =~ (button|card|dropdown|dialog|popup|nav_bar|field|bubble|selector|lock|display|chart|painter|offer|slider) ]]; then
+            if [[ "$filename_lc" =~ (button|card|dropdown|dialog|popup|nav_bar|field|bubble|selector|lock|display|chart|painter) ]]; then
               continue
             fi
 
@@ -146,19 +141,15 @@ jobs:
                 builder: (BuildContext context) {
           EOF
 
-          # 3. Compile Router Logic Map exclusively for legitimate screens
+          # 3. Compile Router Logic Map exclusively for actual views/screens
           while read -r file; do
             clean_import_path="${file#lib/}"
             if [[ "$clean_import_path" == "main.dart" || "$clean_import_path" == "generated_router.dart" ]]; then
               continue
             fi
 
-            if [[ ! "$file" =~ (screens/|views/|pages/) && ! "$file" =~ (_screen\.dart|_view\.dart|_page\.dart) ]]; then
-              continue
-            fi
-
             filename_lc=$(basename "$file" .dart | tr '[:upper:]' '[:lower:]')
-            if [[ "$filename_lc" =~ (button|card|dropdown|dialog|popup|nav_bar|field|bubble|selector|lock|display|chart|painter|offer|slider) ]]; then
+            if [[ "$filename_lc" =~ (button|card|dropdown|dialog|popup|nav_bar|field|bubble|selector|lock|display|chart|painter) ]]; then
               continue
             fi
 
@@ -174,14 +165,8 @@ jobs:
                 echo "        if (path == '/' || path.contains('splash')) return const ${classname}();" >> "$ROUTER_FILE"
               elif [[ "$filename" == "premium_receipt_view" || "$filename" == "premium_receipt" ]]; then
                 echo "        if (path.contains('$short_path')) { final args = settings.arguments; if (args != null) { return ${classname}(tx: args as dynamic); } return const SplashScreen(); }" >> "$ROUTER_FILE"
-              elif [[ "$filename" == "ai_video_feed_view" || "$filename" == "spark_ai_view" ]]; then
-                # 🔒 EXPLICIT FIX FOR CORE CHANNELS: Enforces completely parameterless clean invocation parameters
-                echo "        if (path.contains('$short_path')) return const ${classname}();" >> "$ROUTER_FILE"
-              elif grep -E -q "constructor|\${classname}(\{.*required" "$file" || grep -q "required this." "$file"; then
-                # Safe variable extraction tracking fallback for specialized views
-                param_name=$(grep -oE "required this.[A-Za-z0-9_]+" "$file" | head -n 1 | sed 's/required this.//g')
-                [[ -z "$param_name" ]] && param_name=$(grep -oE "required [A-Za-z0-9_]+ [A-Za-z0-9_]+" "$file" | head -n 1 | awk '{print $NF}')
-                
+              elif grep -q "required this\." "$file"; then
+                param_name=$(grep -oE "required this\.[A-Za-z0-9_]+" "$file" | head -n 1 | sed 's/required this\.//g')
                 if [ -z "$param_name" ]; then
                   echo "        if (path.contains('$short_path')) return const ${classname}();" >> "$ROUTER_FILE"
                 else
@@ -194,46 +179,34 @@ jobs:
           done < <(find lib -type f -name "*.dart")
 
           cat << 'EOF' >> "$ROUTER_FILE"
-          return const SplashScreen();
+                  
+                  return const SplashScreen();
                 },
               );
             }
           }
           EOF
 
-          # 4. Clear global constant compilation mismatches
-          find . -name ".dart" -type f -exec sed -i 's|const [[|[[|g' {} + 2>/dev/null || true
-          find . -name ".dart" -type f -exec sed -i 's|return const |return |g' {} + 2>/dev/null || true
-          echo "🏆 System wide filtered mapping complete."
+          find . -name "*.dart" -type f -exec sed -i 's|const \[|\[|g' {} + 2>/dev/null || true
+          find . -name "*.dart" -type f -exec sed -i 's|return const |return |g' {} + 2>/dev/null || true
+          echo "🏆 Filtered assembly pass completed successfully."
 
       # --- 5. MULTI-PLATFORM ENFORCED PRODUCTION DRIVERS ---
-      # 🌐 TARGET 1: Build Production Web App FIRST using a clean root directory pointer
+      # 🌐 TARGET 1: Build Production Web App FIRST using your pre-existing files
       - name: Build Production Web App for GitHub Pages
         run: |
-          flutter build web --release --base-href "/"
-
-      # Modern, native caching bypass: drops the deprecated service worker safely
-      - name: Patch Service Worker for GitHub Pages Caching
-        run: |
-          echo "Patching bootstrap config..."
-          sed -i 's|serviceWorkerVersion:|// serviceWorkerVersion:|g' build/web/index.html || true
-          rm -f build/web/flutter_service_worker.js || true
+          flutter build web --release --base-href "/mind-spark/"
+          rm -f build/web/flutter_service_worker.js
 
       # 🤖 TARGET 2: Build Release APK SECOND
       - name: Build Release APK
         run: |
-          flutter build apk --release \
-            --build-name=1.0.0 \
-            --build-number=1 \
-            --no-tree-shake-icons
+          flutter build apk --release --build-name=1.0.0 --build-number=1 --no-tree-shake-icons
 
       # 📦 TARGET 3: Build Release App Bundle (AAB) THIRD
       - name: Build Release App Bundle (AAB)
         run: |
-          flutter build appbundle --release \
-            --build-name=1.0.0 \
-            --build-number=1 \
-            --no-tree-shake-icons
+          flutter build appbundle --release --build-name=1.0.0 --build-number=1 --no-tree-shake-icons
 
       - name: Upload Android APK & AAB Artifacts
         uses: actions/upload-artifact@v4
