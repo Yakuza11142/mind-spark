@@ -68,7 +68,7 @@ jobs:
       - name: Repair Index HTML & Force Local SDK Resolution
         run: |
           # Safe fallback to make sure base reference matching is exact for GitHub Pages sub-folders
-          sed -i 's|<base href="[^"]*">|<base href="\$FLUTTER_BASE_HREF">|g' web/index.html || true
+          sed -i 's|<base href="[^"]*">|<base href="$FLUTTER_BASE_HREF">|g' web/index.html || true
           
           # Enable Web Compilation Natively on the SDK profile
           flutter config --enable-web
@@ -90,37 +90,49 @@ jobs:
           dart fix --apply || echo "Continuing build with remaining non-breaking issues"
           dart run flutter_launcher_icons || echo "Skipping icon generation"
 
-      # ✅ 4. HIGH-SPEED OMNIDIRECTIONAL AUTO-HEALING CONNECTOR
+      # ✅ 4. HIGH-SPEED FILTERED AUTOMATED CONNECTION ASSEMBLY (ANTI-CRASH)
       - name: Cloud-Side Automated Connection Assembly
         run: |
-          echo "📡 Initiating optimized codebase optimization pass..."
+          echo "📡 Initiating filtered codebase optimization pass..."
           ROUTER_FILE="lib/generated_router.dart"
           
           cat << 'EOF' > "$ROUTER_FILE"
           import 'package:flutter/material.dart';
           EOF
 
-          # Combined Single-Pass Processor (Maps routing imports, cleans constants, and injects runtime fixes)
+          # 1. Map routing imports and apply safe corrections
           while read -r file; do
             clean_import_path="${file#lib/}"
             if [[ "$clean_import_path" == "main.dart" || "$clean_import_path" == "generated_router.dart" ]]; then
               continue
             fi
 
+            # Skip small UI sub-components completely from the routing list
+            filename_lc=$(basename "$file" .dart | tr '[:upper:]' '[:lower:]')
+            if [[ "$filename_lc" =~ (button|card|dropdown|dialog|popup|nav_bar|field|bubble|selector|lock|display|chart|painter) ]]; then
+              continue
+            fi
+
             echo "import '$clean_import_path';" >> "$ROUTER_FILE"
 
-            # Inplace Source File Code Guardrails
+            # Apply runtime layout corrections to source components safely
             sed -i 's|Scaffold(|Scaffold(resizeToAvoidBottomInset: true, |g' "$file" 2>/dev/null || true
-            sed -i 's|Navigator.push|if (mounted) Navigator.push|g' "$file" 2>/dev/null || true
             sed -i "s|'icon_launcher.png'|'assets/icon_launcher.png'|g" "$file" 2>/dev/null || true
             sed -i 's|setVolume(1.0)|setVolume(0.0)|g' "$file" 2>/dev/null || true
             sed -i 's|..initialize()|..initialize().then((_) { ..setVolume(0.0); })|g' "$file" 2>/dev/null || true
-            sed -i 's|shouldRepaint(covariant CustomPainter oldDelegate) => true|shouldRepaint(covariant CustomPainter oldDelegate) => false|g' "$file" 2>/dev/null || true
             sed -i 's|Image.asset(|Image.asset(cacheWidth: 480, |g' "$file" 2>/dev/null || true
-            sed -i 's|const \[|\[|g' "$file" 2>/dev/null || true
-            sed -i 's|return const |return |g' "$file" 2>/dev/null || true
+
           done < <(find lib -type f -name "*.dart")
 
+          # 🩹 FORCE REPAIR BROKEN INLINE APP ERRORS
+          echo "🩹 Fixing custom source file bugs..."
+          # Fix A: Inject missing shouldRepaint override inside custom painters if dropped
+          find lib -type f -name "*.dart" -exec sed -i 's|class PolymorphicHologramPainter extends CustomPainter {|class PolymorphicHologramPainter extends CustomPainter { @override bool shouldRepaint(CustomPainter oldDelegate) => false;|g' {} + 2>/dev/null || true
+          
+          # Fix B: Fix missing 'mounted' getter in StatelessWidget files safely by forcing build context hooks
+          find lib -type f -name "*.dart" -exec sed -i 's|if (mounted)|if (context.mounted)|g' {} + 2>/dev/null || true
+
+          # 2. Append the core router management framework
           cat << 'EOF' >> "$ROUTER_FILE"
 
           class AutomatedRouter {
@@ -132,10 +144,15 @@ jobs:
                 builder: (BuildContext context) {
           EOF
 
-          # Build Router Logic Map
+          # 3. Compile Router Logic Map exclusively for actual views/screens
           while read -r file; do
             clean_import_path="${file#lib/}"
             if [[ "$clean_import_path" == "main.dart" || "$clean_import_path" == "generated_router.dart" ]]; then
+              continue
+            fi
+
+            filename_lc=$(basename "$file" .dart | tr '[:upper:]' '[:lower:]')
+            if [[ "$filename_lc" =~ (button|card|dropdown|dialog|popup|nav_bar|field|bubble|selector|lock|display|chart|painter) ]]; then
               continue
             fi
 
@@ -147,12 +164,19 @@ jobs:
 
               short_path=$(echo "$filename" | sed 's/_screen//g' | sed 's/_view//g' | sed 's/_page//g')
 
-              if grep -q "required this\." "$file"; then
-                param_name=$(grep -oE "required this\.[A-Za-z0-9_]+" "$file" | head -n 1 | sed 's/required this\.//g')
-                [[ -z "$param_name" ]] && param_name="tx"
-                echo "        if (path.contains('$short_path')) { final args = settings.arguments; if (args != null) { return ${classname}($param_name: args as dynamic); } return const SplashScreen(); }" >> "$ROUTER_FILE"
-              elif [[ "$filename" == "splash_screen" || "$filename" == "splash" ]]; then
+              if [[ "$filename" == "splash_screen" || "$filename" == "splash" ]]; then
                 echo "        if (path == '/' || path.contains('splash')) return const ${classname}();" >> "$ROUTER_FILE"
+              elif [[ "$filename" == "premium_receipt_view" || "$filename" == "premium_receipt" ]]; then
+                # Safe context dynamic argument casting protection specifically for the receipt screen's transaction data
+                echo "        if (path.contains('$short_path')) { final args = settings.arguments; if (args != null) { return ${classname}(tx: args as dynamic); } return const SplashScreen(); }" >> "$ROUTER_FILE"
+              elif grep -q "required this\." "$file"; then
+                # 🔍 ANTI-CRASH UPGRADE: Extracts variable names accurately on the fly to neutralize constructor parameter errors completely
+                param_name=$(grep -oE "required this\.[A-Za-z0-9_]+" "$file" | head -n 1 | sed 's/required this\.//g')
+                if [ -z "$param_name" ]; then
+                  echo "        if (path.contains('$short_path')) return const ${classname}();" >> "$ROUTER_FILE"
+                else
+                  echo "        if (path.contains('$short_path')) { final args = settings.arguments; if (args != null) { return ${classname}($param_name: args as dynamic); } return const SplashScreen(); }" >> "$ROUTER_FILE"
+                fi
               else
                 echo "        if (path.contains('$short_path')) return const ${classname}();" >> "$ROUTER_FILE"
               fi
@@ -167,7 +191,11 @@ jobs:
             }
           }
           EOF
-          echo "🏆 Unified compilation sweep completed successfully."
+
+          # 4. Clear global constant compilation mismatches
+          find . -name "*.dart" -type f -exec sed -i 's|const \[|\[|g' {} + 2>/dev/null || true
+          find . -name "*.dart" -type f -exec sed -i 's|return const |return |g' {} + 2>/dev/null || true
+          echo "🏆 Filtered assembly pass completed successfully."
 
       # --- 5. MULTI-PLATFORM ENFORCED PRODUCTION DRIVERS ---
       # 🌐 TARGET 1: Build Production Web App FIRST using your pre-existing files
@@ -177,7 +205,6 @@ jobs:
           
           # Modern, native caching bypass: drops the deprecated service worker safely
           echo "Patching bootstrap config..."
-          sed -i 's|serviceWorkerVersion:|// serviceWorkerVersion:|g' build/web/index.html || true
           rm -f build/web/flutter_service_worker.js || true
 
       # 🤖 TARGET 2: Build Release APK SECOND
