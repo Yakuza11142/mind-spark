@@ -207,9 +207,10 @@ jobs:
           echo "🏆 System wide filtered mapping complete."
 
       # --- 5. MULTI-PLATFORM ENFORCED PRODUCTION DRIVERS ---
+      # 🌐 TARGET 1: Build Production Web App FIRST using a clean root directory pointer
       - name: Build Production Web App for GitHub Pages
         run: |
-          flutter build web --release --base-href "/mind-spark/"
+          flutter build web --release --base-href "/"
 
       # Modern, native caching bypass: drops the deprecated service worker safely
       - name: Patch Service Worker for GitHub Pages Caching
