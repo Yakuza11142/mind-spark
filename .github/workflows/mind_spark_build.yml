@@ -66,8 +66,17 @@ jobs:
         run: |
           sed -i 's|<base href="[^"]*">|<base href="\$FLUTTER_BASE_HREF">|g' web/index.html || true
           flutter config --no-enable-web
+          
+          # 🛡️ THE DEPENDENCY OVERRIDE SHIELD: Tells the engine where the local web files live natively
+          echo "" >> pubspec.yaml
+          echo "dependency_overrides:" >> pubspec.yaml
+          echo "  flutter_web_plugins:" >> pubspec.yaml
+          echo "    sdk: flutter" >> pubspec.yaml
+          
+          # Clean hidden stale environment locks completely
+          rm -rf .dart_tool/
           rm -f pubspec.lock
-          flutter pub get || echo "Bypassing intermediate dependency hooks"
+          flutter pub get
 
       # 🩹 CODE CORRECTIONS (LINTS & WARNINGS)
       - name: Auto Clean and Apply Codebase Corrections
@@ -156,29 +165,27 @@ jobs:
           echo "🏆 Unified compilation sweep completed successfully."
 
       # --- 5. MULTI-PLATFORM ENFORCED PRODUCTION DRIVERS ---
-      # Temporarily stashes the web directory before building Android so the resolver behaves natively
+      # 🌐 TARGET 1: Build Production Web App FIRST
+      - name: Build Production Web App for GitHub Pages
+        run: flutter build web --release --base-href "/mind-spark/" --pwa-strategy=none
+
+      # 🤖 TARGET 2: Build Release APK SECOND
       - name: Build Release APK
         run: |
-          mv web/ web_backup/ || true
           flutter build apk --release \
             --android-skip-build-dependency-validation \
             --build-name=1.0.0 \
             --build-number=1 \
             --no-tree-shake-icons
-          mv web_backup/ web/ || true
 
+      # 📦 TARGET 3: Build Release App Bundle (AAB) THIRD
       - name: Build Release App Bundle (AAB)
         run: |
-          mv web/ web_backup/ || true
           flutter build appbundle --release \
             --android-skip-build-dependency-validation \
             --build-name=1.0.0 \
             --build-number=1 \
             --no-tree-shake-icons
-          mv web_backup/ web/ || true
-
-      - name: Build Production Web App for GitHub Pages
-        run: flutter build web --release --base-href "/mind-spark/" --pwa-strategy=none
 
       - name: Upload Android APK & AAB Artifacts
         uses: actions/upload-artifact@v4
