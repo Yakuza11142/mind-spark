@@ -38,17 +38,14 @@ jobs:
           channel: 'stable'
           cache: false
 
-      # --- 1. INITIAL RUNTIME CLEANING SPRINT ---
-      - name: Auto Format Entire Codebase Structure
-        run: dart format . || echo "Bypassing formatting irregularities"
-
-      # --- 2. ANDROID ARCHITECTURE REGENERATION ---
-      - name: Force Recreate Fresh Android Structure
+      # --- 1. INITIAL RUNTIME CLEANING & STRUCTURE SPRINT ---
+      - name: Format Code & Regenerate Android Project
         run: |
+          dart format . || echo "Bypassing formatting irregularities"
           rm -rf android/
           flutter create --platforms=android --org com.mindspark --project-name=mind_spark . || true
 
-      # --- 3. BRANDING PLATFORM ASSET RECOVERY ---
+      # --- 2. BRANDING PLATFORM ASSET RECOVERY ---
       - name: Auto Clone Launcher Icons into Web Directory
         run: |
           if [ -f icon_launcher.png ]; then
@@ -64,51 +61,40 @@ jobs:
             exit 1
           fi
 
-      # --- 4. REPAIR INDEX HTML BASE PLACEHOLDER & DEPENDENCIES ---
-      - name: Repair Index HTML Base Placeholder
+      # --- 3. REPAIR INDEX HTML & CONFIGURE DEPENDENCIES ---
+      - name: Repair Index HTML & Force Local SDK Resolution
         run: |
           sed -i 's|<base href="[^"]*">|<base href="\$FLUTTER_BASE_HREF">|g' web/index.html || true
-
-      # ✅ FIXED DEPENDENCY SOLVER: Resolves local SDK web plugin routing structures without pub.dev server errors
-      - name: Install SDK Framework Plugins
-        run: flutter pub get --offline || flutter pub get
+          flutter config --no-enable-web
+          flutter pub get --offline || flutter pub get
 
       # 🩹 CODE CORRECTIONS (LINTS & WARNINGS)
       - name: Auto Clean and Apply Codebase Corrections
         run: |
           echo "🩹 Running automated source corrections..."
           dart fix --apply || echo "Continuing build with remaining non-breaking issues"
+          dart run flutter_launcher_icons || echo "Skipping icon generation"
 
-      - name: Generate App Launcher Icons
-        run: dart run flutter_launcher_icons || echo "Skipping icon generation"
-
-      # ✅ 5. HIGH-SPEED OMNIDIRECTIONAL AUTO-HEALING CONNECTOR
-      # One optimized file sweep maps routes, handles arguments, and applies core runtime patches instantly
+      # ✅ 4. HIGH-SPEED OMNIDIRECTIONAL AUTO-HEALING CONNECTOR
       - name: Cloud-Side Automated Connection Assembly
         run: |
           echo "📡 Initiating optimized codebase optimization pass..."
-          
           ROUTER_FILE="lib/generated_router.dart"
           
-          # Initialize the router file structural template
           cat << 'EOF' > "$ROUTER_FILE"
           import 'package:flutter/material.dart';
           EOF
 
-          # 1. High-Speed Codebase Assembly & Processing Loop
-          # Scans files exactly once using process substitution to prevent subshell state leakage
+          # Combined Single-Pass Processor (Maps routing imports, cleans constants, and injects runtime fixes)
           while read -r file; do
             clean_import_path="${file#lib/}"
-            
-            # Skip entrypoint and router file loops
             if [[ "$clean_import_path" == "main.dart" || "$clean_import_path" == "generated_router.dart" ]]; then
               continue
             fi
 
-            # Auto-append the clean workspace import header
             echo "import '$clean_import_path';" >> "$ROUTER_FILE"
 
-            # Apply runtime layout corrections directly to the source component file
+            # Inplace Source File Code Guardrails
             sed -i 's|Scaffold(|Scaffold(resizeToAvoidBottomInset: true, |g' "$file" 2>/dev/null || true
             sed -i 's|Navigator.push|if (mounted) Navigator.push|g' "$file" 2>/dev/null || true
             sed -i "s|'icon_launcher.png'|'assets/icon_launcher.png'|g" "$file" 2>/dev/null || true
@@ -116,10 +102,10 @@ jobs:
             sed -i 's|..initialize()|..initialize().then((_) { ..setVolume(0.0); })|g' "$file" 2>/dev/null || true
             sed -i 's|shouldRepaint(covariant CustomPainter oldDelegate) => true|shouldRepaint(covariant CustomPainter oldDelegate) => false|g' "$file" 2>/dev/null || true
             sed -i 's|Image.asset(|Image.asset(cacheWidth: 480, |g' "$file" 2>/dev/null || true
-
+            sed -i 's|const \[|\[|g' "$file" 2>/dev/null || true
+            sed -i 's|return const |return |g' "$file" 2>/dev/null || true
           done < <(find lib -type f -name "*.dart")
 
-          # 2. Append the core router management framework
           cat << 'EOF' >> "$ROUTER_FILE"
 
           class AutomatedRouter {
@@ -131,33 +117,24 @@ jobs:
                 builder: (BuildContext context) {
           EOF
 
-          # 3. Compile Navigation Logic Trees
+          # Build Router Logic Map
           while read -r file; do
             clean_import_path="${file#lib/}"
             if [[ "$clean_import_path" == "main.dart" || "$clean_import_path" == "generated_router.dart" ]]; then
               continue
             fi
 
-            # Evaluate widget status via structural definitions
             if grep -qE "extends (StatelessWidget|StatefulWidget)" "$file"; then
               filename=$(basename "$file" .dart)
-              
-              # Extract actual class names safely
               classname=$(grep -E "class [A-Za-z0-9_]+ extends" "$file" | head -n 1 | awk '{print $2}')
-              if [ -z "$classname" ]; then
-                classname=$(grep -oE "class [A-Za-z0-9_]+" "$file" | head -n 1 | awk '{print $2}')
-              fi
-              if [ -z "$classname" ]; then
-                classname=$(echo "$filename" | awk -F_ '{for(i=1;i<=NF;i++) printf "%s", toupper(substr($i,1,1)) substr($i,2)}')
-              fi
+              [[ -z "$classname" ]] && classname=$(grep -oE "class [A-Za-z0-9_]+" "$file" | head -n 1 | awk '{print $2}')
+              [[ -z "$classname" ]] && classname=$(echo "$filename" | awk -F_ '{for(i=1;i<=NF;i++) printf "%s", toupper(substr($i,1,1)) substr($i,2)}')
 
               short_path=$(echo "$filename" | sed 's/_screen//g' | sed 's/_view//g' | sed 's/_page//g')
 
               if grep -q "required this\." "$file"; then
                 param_name=$(grep -oE "required this\.[A-Za-z0-9_]+" "$file" | head -n 1 | sed 's/required this\.//g')
-                if [ -z "$param_name" ]; then param_name="tx"; fi
-                
-                # Dynamic type casting handler with absolute zero-placeholder safeguards
+                [[ -z "$param_name" ]] && param_name="tx"
                 echo "        if (path.contains('$short_path')) { final args = settings.arguments; if (args != null) { return ${classname}($param_name: args as dynamic); } return const SplashScreen(); }" >> "$ROUTER_FILE"
               elif [[ "$filename" == "splash_screen" || "$filename" == "splash" ]]; then
                 echo "        if (path == '/' || path.contains('splash')) return const ${classname}();" >> "$ROUTER_FILE"
@@ -167,7 +144,6 @@ jobs:
             fi
           done < <(find lib -type f -name "*.dart")
 
-          # 4. Final close of routing syntax boundaries securely (Fallback Router Shield)
           cat << 'EOF' >> "$ROUTER_FILE"
                   
                   return const SplashScreen();
@@ -176,17 +152,12 @@ jobs:
             }
           }
           EOF
+          echo "🏆 Unified compilation sweep completed successfully."
 
-          # 5. Clear global constant compilation mismatches safely
-          find . -name "*.dart" -type f -exec sed -i 's|const \[|\[|g' {} + 2>/dev/null || true
-          find . -name "*.dart" -type f -exec sed -i 's|return const |return |g' {} + 2>/dev/null || true
-          
-          echo "🏆 Unified compilation sweep and structural healing completed successfully."
-
-      # --- 6. MULTI-PLATFORM ENFORCED PRODUCTION DRIVERS ---
+      # --- 5. MULTI-PLATFORM ENFORCED PRODUCTION DRIVERS ---
       - name: Build Release APK
         run: |
-          flutter build apk --release \
+          flutter build apk --release --offline \
             --android-skip-build-dependency-validation \
             --build-name=1.0.0 \
             --build-number=1 \
@@ -194,7 +165,7 @@ jobs:
 
       - name: Build Release App Bundle (AAB)
         run: |
-          flutter build appbundle --release \
+          flutter build appbundle --release --offline \
             --android-skip-build-dependency-validation \
             --build-name=1.0.0 \
             --build-number=1 \
