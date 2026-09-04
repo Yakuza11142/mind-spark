@@ -68,7 +68,7 @@ jobs:
       - name: Repair Index HTML & Force Local SDK Resolution
         run: |
           # Safe fallback to make sure base reference matching is exact for GitHub Pages sub-folders
-          sed -i 's|<base href="[^"]*">|<base href="$FLUTTER_BASE_HREF">|g' web/index.html || true
+          sed -i 's|<base href="[^"]*">|<base href="\$FLUTTER_BASE_HREF">|g' web/index.html || true
           
           # Enable Web Compilation Natively on the SDK profile
           flutter config --enable-web
@@ -90,7 +90,7 @@ jobs:
           dart fix --apply || echo "Continuing build with remaining non-breaking issues"
           dart run flutter_launcher_icons || echo "Skipping icon generation"
 
-      # ✅ 4. HIGH-SPEED FILTERED AUTOMATED CONNECTION ASSEMBLY (ANTI-CRASH)
+      # ✅ 4. HIGH-SPEED FILTERED AUTOMATED CONNECTION ASSEMBLY (STRICT SCREEN FILTERS)
       - name: Cloud-Side Automated Connection Assembly
         run: |
           echo "📡 Initiating filtered codebase optimization pass..."
@@ -100,16 +100,21 @@ jobs:
           import 'package:flutter/material.dart';
           EOF
 
-          # 1. Map routing imports and apply safe corrections
+          # 1. Map routing imports and apply safe corrections exclusively for strict screen modules
           while read -r file; do
             clean_import_path="${file#lib/}"
             if [[ "$clean_import_path" == "main.dart" || "$clean_import_path" == "generated_router.dart" ]]; then
               continue
             fi
 
-            # Skip small UI sub-components completely from the routing list
+            # 🛡️ STRICT WORKSPACE FILTER: Only allow files explicitly inside a screens/views folder, OR ending in _screen.dart/_view.dart
+            if [[ ! "$file" =~ (screens/|views/|pages/) && ! "$file" =~ (_screen\.dart|_view\.dart|_page\.dart) ]]; then
+              continue
+            fi
+
+            # Strict exclusion guard for widget subcomponents and fragments
             filename_lc=$(basename "$file" .dart | tr '[:upper:]' '[:lower:]')
-            if [[ "$filename_lc" =~ (button|card|dropdown|dialog|popup|nav_bar|field|bubble|selector|lock|display|chart|painter) ]]; then
+            if [[ "$filename_lc" =~ (button|card|dropdown|dialog|popup|nav_bar|field|bubble|selector|lock|display|chart|painter|offer|slider) ]]; then
               continue
             fi
 
@@ -126,10 +131,7 @@ jobs:
 
           # 🩹 FORCE REPAIR BROKEN INLINE APP ERRORS
           echo "🩹 Fixing custom source file bugs..."
-          # Fix A: Inject missing shouldRepaint override inside custom painters if dropped
           find lib -type f -name "*.dart" -exec sed -i 's|class PolymorphicHologramPainter extends CustomPainter {|class PolymorphicHologramPainter extends CustomPainter { @override bool shouldRepaint(CustomPainter oldDelegate) => false;|g' {} + 2>/dev/null || true
-          
-          # Fix B: Fix missing 'mounted' getter in StatelessWidget files safely by forcing build context hooks
           find lib -type f -name "*.dart" -exec sed -i 's|if (mounted)|if (context.mounted)|g' {} + 2>/dev/null || true
 
           # 2. Append the core router management framework
@@ -144,15 +146,19 @@ jobs:
                 builder: (BuildContext context) {
           EOF
 
-          # 3. Compile Router Logic Map exclusively for actual views/screens
+          # 3. Compile Router Logic Map exclusively for legitimate screens
           while read -r file; do
             clean_import_path="${file#lib/}"
             if [[ "$clean_import_path" == "main.dart" || "$clean_import_path" == "generated_router.dart" ]]; then
               continue
             fi
 
+            if [[ ! "$file" =~ (screens/|views/|pages/) && ! "$file" =~ (_screen\.dart|_view\.dart|_page\.dart) ]]; then
+              continue
+            fi
+
             filename_lc=$(basename "$file" .dart | tr '[:upper:]' '[:lower:]')
-            if [[ "$filename_lc" =~ (button|card|dropdown|dialog|popup|nav_bar|field|bubble|selector|lock|display|chart|painter) ]]; then
+            if [[ "$filename_lc" =~ (button|card|dropdown|dialog|popup|nav_bar|field|bubble|selector|lock|display|chart|painter|offer|slider) ]]; then
               continue
             fi
 
@@ -167,11 +173,15 @@ jobs:
               if [[ "$filename" == "splash_screen" || "$filename" == "splash" ]]; then
                 echo "        if (path == '/' || path.contains('splash')) return const ${classname}();" >> "$ROUTER_FILE"
               elif [[ "$filename" == "premium_receipt_view" || "$filename" == "premium_receipt" ]]; then
-                # Safe context dynamic argument casting protection specifically for the receipt screen's transaction data
                 echo "        if (path.contains('$short_path')) { final args = settings.arguments; if (args != null) { return ${classname}(tx: args as dynamic); } return const SplashScreen(); }" >> "$ROUTER_FILE"
-              elif grep -q "required this\." "$file"; then
-                # 🔍 ANTI-CRASH UPGRADE: Extracts variable names accurately on the fly to neutralize constructor parameter errors completely
-                param_name=$(grep -oE "required this\.[A-Za-z0-9_]+" "$file" | head -n 1 | sed 's/required this\.//g')
+              elif [[ "$filename" == "ai_video_feed_view" || "$filename" == "spark_ai_view" ]]; then
+                # 🔒 EXPLICIT FIX FOR CORE CHANNELS: Enforces completely parameterless clean invocation parameters
+                echo "        if (path.contains('$short_path')) return const ${classname}();" >> "$ROUTER_FILE"
+              elif grep -E -q "constructor|\${classname}(\{.*required" "$file" || grep -q "required this." "$file"; then
+                # Safe variable extraction tracking fallback for specialized views
+                param_name=$(grep -oE "required this.[A-Za-z0-9_]+" "$file" | head -n 1 | sed 's/required this.//g')
+                [[ -z "$param_name" ]] && param_name=$(grep -oE "required [A-Za-z0-9_]+ [A-Za-z0-9_]+" "$file" | head -n 1 | awk '{print $NF}')
+                
                 if [ -z "$param_name" ]; then
                   echo "        if (path.contains('$short_path')) return const ${classname}();" >> "$ROUTER_FILE"
                 else
@@ -184,8 +194,7 @@ jobs:
           done < <(find lib -type f -name "*.dart")
 
           cat << 'EOF' >> "$ROUTER_FILE"
-                  
-                  return const SplashScreen();
+          return const SplashScreen();
                 },
               );
             }
@@ -193,18 +202,20 @@ jobs:
           EOF
 
           # 4. Clear global constant compilation mismatches
-          find . -name "*.dart" -type f -exec sed -i 's|const \[|\[|g' {} + 2>/dev/null || true
-          find . -name "*.dart" -type f -exec sed -i 's|return const |return |g' {} + 2>/dev/null || true
-          echo "🏆 Filtered assembly pass completed successfully."
+          find . -name ".dart" -type f -exec sed -i 's|const [[|[[|g' {} + 2>/dev/null || true
+          find . -name ".dart" -type f -exec sed -i 's|return const |return |g' {} + 2>/dev/null || true
+          echo "🏆 System wide filtered mapping complete."
 
       # --- 5. MULTI-PLATFORM ENFORCED PRODUCTION DRIVERS ---
-      # 🌐 TARGET 1: Build Production Web App FIRST using your pre-existing files
       - name: Build Production Web App for GitHub Pages
         run: |
           flutter build web --release --base-href "/mind-spark/"
-          
-          # Modern, native caching bypass: drops the deprecated service worker safely
+
+      # Modern, native caching bypass: drops the deprecated service worker safely
+      - name: Patch Service Worker for GitHub Pages Caching
+        run: |
           echo "Patching bootstrap config..."
+          sed -i 's|serviceWorkerVersion:|// serviceWorkerVersion:|g' build/web/index.html || true
           rm -f build/web/flutter_service_worker.js || true
 
       # 🤖 TARGET 2: Build Release APK SECOND
