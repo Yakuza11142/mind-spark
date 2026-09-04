@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'mind_spark_registry.dart'; // ✅ THE SAFE MIDDLEMAN CONNECTOR
+import 'generated_router.dart'; // 👈 GitHub Actions builds this completely automatically!
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,8 +18,7 @@ class MindSparkApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFF1B1424),
       ),
       initialRoute: '/',
-      // Safely hands off navigation to your automated routing script
-      onGenerateRoute: MindSparkRegistry.resolveWebAndNativeRoutes,
+      onGenerateRoute: AutomatedRouter.resolveRoutes, // 👈 Triggers the automated map
     );
   }
 }
