@@ -76,41 +76,69 @@ jobs:
         run: dart run flutter_launcher_icons || echo "Skipping icon generation"
 
       # ✅ 5. CLOUD STRUCTURAL ASSEMBLE MOTOR
-      # Automatically builds your connection architecture inside the virtual machine runner right before compilation
+      # Automatically discovers any view file anywhere in 'lib/' and binds it on the fly
       - name: Cloud-Side Automated Connection Assembly
         run: |
-          echo "📡 Programmatically assembling runtime file mappings..."
-          mkdir -p lib
-          cat << 'EOF' > lib/main.reflectable.dart
+          echo "📡 Crawling entire lib directory for views and screens..."
+          
+          ROUTER_FILE="lib/generated_router.dart"
+          
+          # Initialize the automated router file
+          cat << 'EOF' > $ROUTER_FILE
           import 'package:flutter/material.dart';
-          import 'screens/splash_screen.dart';
-          import 'screens/intro_screen.dart';
-          import 'screens/main_layout_screen.dart';
-          import 'screens/spark_ai_view.dart';
-          import 'screens/ai_video_feed_view.dart';
+          EOF
 
-          class MindSparkRegistry {
-            static Route<dynamic> resolveWebAndNativeRoutes(RouteSettings settings) {
+          # 1. Dynamically scan the ENTIRE lib/ directory for screens/views and add imports
+          find lib -type f \( -name "*_screen.dart" -o -name "*_view.dart" \) | while read -r file; do
+            clean_import_path="${file#lib/}"
+            echo "import '$clean_import_path';" >> $ROUTER_FILE
+          done
+
+          # 2. Append the routing framework core shell
+          cat << 'EOF' >> $ROUTER_FILE
+
+          class AutomatedRouter {
+            static Route<dynamic> resolveRoutes(RouteSettings settings) {
               final String path = settings.name ?? '/';
+
               return MaterialPageRoute(
                 settings: settings,
                 builder: (BuildContext context) {
-                  if (path == '/' || path.contains('splash')) return const SplashScreen();
-                  if (path.contains('intro')) return const IntroScreen();
-                  if (path.contains('dashboard') || path.contains('main')) return const MainLayoutScreen();
-                  if (path.contains('video')) return const Scaffold(body: Center(child: AiVideoFeedView()));
-                  if (path.contains('spark')) return const Scaffold(body: Center(child: SparkAiView()));
-                  return const SplashScreen();
+          EOF
+
+          # 3. Dynamic Router Generation Engine
+          find lib -type f \( -name "*_screen.dart" -o -name "*_view.dart" \) | while read -r file; do
+            filename=$(basename "$file" .dart)
+            
+            # Convert snake_case file titles directly into class PascalCase (e.g. spark_ai_view -> SparkAiView)
+            classname=$(echo "$filename" | awk -F_ '{for(i=1;i<=NF;i++) printf "%s", toupper(substr($i,1,1)) substr($i,2)}温')
+            
+            # Form clean url paths by stripping design tags
+            short_path=$(echo "$filename" | sed 's/_screen//g' | sed 's/_view//g')
+
+            if [ "$filename" = "splash_screen" ] || [ "$filename" = "splash" ]; then
+              echo "        if (path == '/' || path.contains('splash')) return const ${classname}();" >> $ROUTER_FILE
+            else
+              echo "        if (path.contains('$short_path')) return const ${classname}();" >> $ROUTER_FILE
+            fi
+          done
+
+          # 4. Final close of routing syntax boundaries securely
+          cat << 'EOF' >> $ROUTER_FILE
+                  
+                  // Default fallback protection if page isn't found
+                  return const Scaffold(body: Center(child: Text("Route Not Found")));
                 },
               );
             }
           }
           EOF
-          
-          # Universal text-cleaning sweep to handle accidental const constraints across sub-files smoothly
+
+          # 5. Clean up any leftover explicit layout keywords safely
           find . -name "*.dart" -type f -exec sed -i 's|const \[|\[|g' {} + 2>/dev/null || true
           find . -name "*.dart" -type f -exec sed -i 's|return const |return |g' {} + 2>/dev/null || true
-          echo "🏆 Connection assembly completed successfully."
+          
+          echo "🏆 Successfully scanned, parsed, and mapped all project modules into $ROUTER_FILE."
 
       # --- 6. MULTI-PLATFORM ENFORCED PRODUCTION DRIVERS ---
       - name: Build Release APK
