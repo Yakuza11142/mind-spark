@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'main.reflectable.dart'; // ✅ THE AUTOMATIC MIDDLEMAN CONNECTOR
+import 'mind_spark_registry.dart'; // ✅ THE SAFE MIDDLEMAN CONNECTOR
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,7 +18,7 @@ class MindSparkApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFF1B1424),
       ),
       initialRoute: '/',
-      // Automatically hands off the navigation strings to the cloud-compiled mapping table
+      // Safely hands off navigation to your automated routing script
       onGenerateRoute: MindSparkRegistry.resolveWebAndNativeRoutes,
     );
   }
