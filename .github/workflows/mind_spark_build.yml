@@ -84,18 +84,19 @@ jobs:
           ROUTER_FILE="lib/generated_router.dart"
           
           # Initialize the automated router file
-          cat << 'EOF' > $ROUTER_FILE
+          cat << 'EOF' > "$ROUTER_FILE"
           import 'package:flutter/material.dart';
           EOF
 
           # 1. Dynamically scan the ENTIRE lib/ directory for screens/views and add imports
-          find lib -type f \( -name "*_screen.dart" -o -name "*_view.dart" \) | while read -r file; do
+          # Using process substitution to prevent subshell scope issues
+          while read -r file; do
             clean_import_path="${file#lib/}"
-            echo "import '$clean_import_path';" >> $ROUTER_FILE
-          done
+            echo "import '$clean_import_path';" >> "$ROUTER_FILE"
+          done < <(find lib -type f \( -name "*_screen.dart" -o -name "*_view.dart" \))
 
           # 2. Append the routing framework core shell
-          cat << 'EOF' >> $ROUTER_FILE
+          cat << 'EOF' >> "$ROUTER_FILE"
 
           class AutomatedRouter {
             static Route<dynamic> resolveRoutes(RouteSettings settings) {
@@ -107,24 +108,24 @@ jobs:
           EOF
 
           # 3. Dynamic Router Generation Engine
-          find lib -type f \( -name "*_screen.dart" -o -name "*_view.dart" \) | while read -r file; do
+          while read -r file; do
             filename=$(basename "$file" .dart)
             
             # Convert snake_case file titles directly into class PascalCase (e.g. spark_ai_view -> SparkAiView)
-            classname=$(echo "$filename" | awk -F_ '{for(i=1;i<=NF;i++) printf "%s", toupper(substr($i,1,1)) substr($i,2)}温')
+            classname=$(echo "$filename" | awk -F_ '{for(i=1;i<=NF;i++) printf "%s", toupper(substr($i,1,1)) substr($i,2)}')
             
             # Form clean url paths by stripping design tags
             short_path=$(echo "$filename" | sed 's/_screen//g' | sed 's/_view//g')
 
             if [ "$filename" = "splash_screen" ] || [ "$filename" = "splash" ]; then
-              echo "        if (path == '/' || path.contains('splash')) return const ${classname}();" >> $ROUTER_FILE
+              echo "        if (path == '/' || path.contains('splash')) return const ${classname}();" >> "$ROUTER_FILE"
             else
-              echo "        if (path.contains('$short_path')) return const ${classname}();" >> $ROUTER_FILE
+              echo "        if (path.contains('$short_path')) return const ${classname}();" >> "$ROUTER_FILE"
             fi
-          done
+          done < <(find lib -type f \( -name "*_screen.dart" -o -name "*_view.dart" \))
 
           # 4. Final close of routing syntax boundaries securely
-          cat << 'EOF' >> $ROUTER_FILE
+          cat << 'EOF' >> "$ROUTER_FILE"
                   
                   // Default fallback protection if page isn't found
                   return const Scaffold(body: Center(child: Text("Route Not Found")));
