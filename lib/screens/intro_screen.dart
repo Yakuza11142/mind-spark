@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui_web' as ui_web;
-import 'dart:html' as html;
+import 'package:web/web.dart' as web; // ✅ MODERN REPLACEMENT: Built-in SDK package compatible with latest Flutter specifications
 
 class IntroScreen extends StatefulWidget {
   const IntroScreen({super.key});
@@ -11,23 +11,24 @@ class IntroScreen extends StatefulWidget {
 
 class _IntroScreenState extends State<IntroScreen> {
   final String _viewId = 'html_intro_video_player';
-  late html.VideoElement _nativeVideoElement;
+  late web.HTMLVideoElement _nativeVideoElement;
 
   @override
   void initState() {
     super.initState();
 
-    // 🌐 1. Create a pure HTML5 Video element directly inside the browser DOM engine
-    _nativeVideoElement = html.VideoElement()
-      ..src = 'intro.mp4' // Maps directly to your root-level bundled file asset path
-      ..style.border = 'none'
-      ..style.width = '100%'
-      ..style.height = '100%'
-      ..style.objectFit = 'cover' // Forces the video to scale elegantly into a cover background crop
-      ..loop = true
-      ..autoplay = true
-      ..muted = true // 🔊 HTML5 BROWSER AUTOPLAY FIX: Volume explicitly hard-muted to instantly unlock autoplay rendering permissions!
-      ..setAttribute('playsinline', 'true'); // Prevents iPhones from forcing fullscreen video takeovers
+    // 🌐 1. Create a pure HTML5 Video element directly inside the modern browser DOM engine
+    _nativeVideoElement = web.document.createElement('video') as web.HTMLVideoElement;
+    
+    _nativeVideoElement.src = 'intro.mp4'; // Maps directly to your root-level bundled file asset path
+    _nativeVideoElement.style.border = 'none';
+    _nativeVideoElement.style.width = '100%';
+    _nativeVideoElement.style.height = '100%';
+    _nativeVideoElement.style.objectFit = 'cover'; // Forces the video to scale elegantly into a cover background crop
+    _nativeVideoElement.loop = true;
+    _nativeVideoElement.autoplay = true;
+    _nativeVideoElement.muted = true; // 🔊 HTML5 BROWSER AUTOPLAY FIX: Volume explicitly hard-muted to instantly unlock autoplay rendering permissions!
+    _nativeVideoElement.setAttribute('playsinline', 'true'); // Prevents iPhones from forcing fullscreen video takeovers
 
     // 🔧 2. Register the HTML element factory natively into Flutter's platform layout layer
     ui_web.platformViewRegistry.registerViewFactory(
