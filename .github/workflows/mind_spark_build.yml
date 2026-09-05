@@ -59,7 +59,7 @@ jobs:
             exit 1
           fi
 
-      - name: Repair Index HTML & Configure Dependencies
+      - name: Repair Index HTML & Force Local SDK Resolution
         run: |
           sed -i 's|<base href="[^"]*">|<base href="$FLUTTER_BASE_HREF">|g' web/index.html || true
           flutter config --enable-web
@@ -100,6 +100,7 @@ jobs:
             fi
 
             echo "import '$clean_import_path';" >> "$ROUTER_FILE"
+
             sed -i 's|Scaffold(|Scaffold(resizeToAvoidBottomInset: true, |g' "$file" 2>/dev/null || true
             sed -i 's|setVolume(1.0)|setVolume(0.0)|g' "$file" 2>/dev/null || true
             sed -i 's|..initialize()|..initialize().then((_) { ..setVolume(0.0); })|g' "$file" 2>/dev/null || true
@@ -108,8 +109,9 @@ jobs:
             sed -i 's|Image.asset(|Image.asset(cacheWidth: 480, |g' "$file" 2>/dev/null || true
           done < <(find lib -type f -name "*.dart")
 
+          echo "🩹 Fixing custom source file bugs..."
           find lib -type f -name "*.dart" -exec sed -i 's|class PolymorphicHologramPainter extends CustomPainter {|class PolymorphicHologramPainter extends CustomPainter { @override bool shouldRepaint(CustomPainter oldDelegate) => false;|g' {} + 2>/dev/null || true
-          find lib -type f -name "*.dart" -exec sed -i 's|if (mounted) Navigator.push|if (context.mounted) Navigator.push|g' {} + 2>/dev/null || true
+          find lib -type f -name "*.dart" -exec sed -i 's|if (mounted)|if (context.mounted)|g' {} + 2>/dev/null || true
 
           cat << 'EOF' >> "$ROUTER_FILE"
 
@@ -144,34 +146,63 @@ jobs:
               short_path=$(echo "$filename" | sed 's/_screen//g' | sed 's/_view//g' | sed 's/_page//g')
 
               if [[ "$filename" == "splash_screen" || "$filename" == "splash" ]]; then
-                echo "        if (path == '/' || path.contains('splash')) return const ${classname}();" >> "$ROUTER_FILE"
+                echo "      if (path == '/' || path.contains('splash')) return const ${classname}();" >> "$ROUTER_FILE"
+              elif [[ "$filename" == "premium_receipt_view" || "$filename" == "premium_receipt" ]]; then
+                echo "      if (path.contains('$short_path')) { final args = settings.arguments; if (args != null) { return ${classname}(tx: args as dynamic); } return ${classname}(tx: null as dynamic); }" >> "$ROUTER_FILE"
+              elif [[ "$filename" == "ai_video_feed_view" || "$filename" == "spark_ai_view" ]]; then
+                echo "      if (path.contains('$short_path')) return const ${classname}();" >> "$ROUTER_FILE"
+              elif grep -Eq "constructor|\${classname}\(.*\brequired\b" "$file" || grep -q "required this." "$file"; then
+                param_name=$(grep -oE "required this.[A-Za-z0-9_]+" "$file" | head -n 1 | sed 's/required this.//g')
+                [[ -z "$param_name" ]] && param_name=$(grep -oE "required [A-Za-z0-9_]+ [A-Za-z0-9_]+" "$file" | head -n 1 | awk '{print $NF}')
+                if [[ -z "$param_name" ]]; then
+                  echo "      if (path.contains('$short_path')) return const ${classname}();" >> "$ROUTER_FILE"
+                else
+                  echo "      if (path.contains('$short_path')) { final args = settings.arguments; if (args != null) { return ${classname}($param_name: args as dynamic); } return const SplashScreen(); }" >> "$ROUTER_FILE"
+                fi
               else
-                echo "        if (path.contains('$short_path')) return const ${classname}();" >> "$ROUTER_FILE"
+                echo "      if (path.contains('$short_path')) return const ${classname}();" >> "$ROUTER_FILE"
               fi
             fi
           done < <(find lib -type f -name "*.dart")
 
           cat << 'EOF' >> "$ROUTER_FILE"
-                  return const Scaffold(body: Center(child: Text('Page Not Found')));
+                  return const SplashScreen();
                 },
               );
             }
           }
           EOF
 
-      - name: Build Web Release
-        run: flutter build web --release --base-href="/mind-spark/"
+          find . -name "*.dart" -type f -exec sed -i 's|const \[//g' {} + 2>/dev/null || true
+          find . -name "*.dart" -type f -exec sed -i 's|return const |return |g' {} + 2>/dev/null || true
+          echo "🏆 System wide filtered mapping complete."
 
-      - name: Finalize Web Assets & Manifest
+      - name: Build Production Web App for GitHub Pages
         run: |
+          flutter build web --release --base-href "/mind-spark/"
+
+          echo "Patching bootstrap config..."
           sed -i 's|serviceWorkerVersion:|// serviceWorkerVersion:|g' build/web/index.html || true
           rm -f build/web/flutter_service_worker.js || true
-          
+
+          echo "Injecting absolute asset pathways directly into deployment canvas..."
           cp -f icon_launcher.png build/web/icon_launcher.png || true
           cp -f intro.mp4 build/web/intro.mp4 || true
-          mkdir -p build/web/assets build/web/icons
+          mkdir -p build/web/assets
           cp -f icon_launcher.png build/web/assets/icon_launcher.png || true
           cp -f intro.mp4 build/web/assets/intro.mp4 || true
+
+          echo "Recovering native Flutter Material Design Icon Fonts..."
+          mkdir -p build/web/assets/fonts/
+          FLUTTER_SDK_FONTS="${{ env.FLUTTER_ROOT }}/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf"
+          if [ -f "$FLUTTER_SDK_FONTS" ]; then
+            cp -f "$FLUTTER_SDK_FONTS" build/web/assets/fonts/MaterialIcons-Regular.otf || true
+          else
+            find /opt/hostedtoolcache/flutter -name "MaterialIcons-Regular.otf" -exec cp -f {} build/web/assets/fonts/ \; 2>/dev/null || true
+          fi
+
+          echo "Injecting custom web application icon blueprint..."
+          mkdir -p build/web/icons
           cp -f icon_launcher.png build/web/icons/Icon-192.png || true
           cp -f icon_launcher.png build/web/icons/Icon-512.png || true
 
@@ -200,12 +231,6 @@ jobs:
           }
           EOF
 
-          mkdir -p build/web/assets/fonts/
-          FLUTTER_SDK_FONTS="$(dirname $(which flutter))/../cache/artifacts/material_fonts/MaterialIcons-Regular.otf"
-          if [ -f "$FLUTTER_SDK_FONTS" ]; then
-            cp -f "$FLUTTER_SDK_FONTS" build/web/assets/fonts/MaterialIcons-Regular.otf || true
-          fi
-
           cat << 'EOF' > build/web/assets/AssetManifest.json
           {
             "packages/material_design_icons_flutter/lib/fonts/MaterialIcons-Regular.otf": [
@@ -215,10 +240,12 @@ jobs:
           EOF
 
       - name: Build Release APK
-        run: flutter build apk --release --build-name=1.0.0 --build-number=1 --no-tree-shake-icons
+        run: |
+          flutter build apk --release --build-name=1.0.0 --build-number=1 --no-tree-shake-icons
 
       - name: Build Release App Bundle (AAB)
-        run: flutter build appbundle --release --build-name=1.0.0 --build-number=1 --no-tree-shake-icons
+        run: |
+          flutter build appbundle --release --build-name=1.0.0 --build-number=1 --no-tree-shake-icons
 
       - name: Upload Android APK & AAB Artifacts
         uses: actions/upload-artifact@v4
@@ -228,7 +255,7 @@ jobs:
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab
 
-      - name: Upload Web Build Blueprint for Deployment
+      - name: Upload Web Build Blueprint for Deployment Step
         uses: actions/upload-pages-artifact@v3
         with:
           path: build/web
