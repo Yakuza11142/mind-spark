@@ -208,11 +208,11 @@ jobs:
 
           echo "Recovering native Flutter Material Design Icon Fonts..."
           mkdir -p build/web/assets/fonts/
-          FLUTTER_SDK_FONTS="${{ env.FLUTTER_ROOT }}/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf"
+          FLUTTER_SDK_FONTS="$FLUTTER_ROOT/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf"
           if [ -f "$FLUTTER_SDK_FONTS" ]; then
             cp -f "$FLUTTER_SDK_FONTS" build/web/assets/fonts/MaterialIcons-Regular.otf || true
           else
-            find "${{ env.FLUTTER_ROOT }}" -name "MaterialIcons-Regular.otf" -exec cp -f {} build/web/assets/fonts/ \; 2>/dev/null || true
+            find "$FLUTTER_ROOT" -name "MaterialIcons-Regular.otf" -exec cp -f {} build/web/assets/fonts/ \; 2>/dev/null || true
           fi
 
           echo "Injecting custom web application icon blueprint..."
