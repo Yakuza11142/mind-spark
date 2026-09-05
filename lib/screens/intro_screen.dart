@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:ui_web' as ui_web;
-import 'package:web/web.dart' as web; // ✅ MODERN REPLACEMENT: Built-in SDK package compatible with latest Flutter specifications
+import 'dart:js_interop'; // ✅ CORE DART INTEROP: Built directly into the SDK, works on all versions of Flutter
+
+// Safely bind to the browser's global window document object natively without packages
+@JS('document.createElement')
+external JSObject nativeCreateElement(JSString tagName);
 
 class IntroScreen extends StatefulWidget {
   const IntroScreen({super.key});
@@ -11,24 +15,26 @@ class IntroScreen extends StatefulWidget {
 
 class _IntroScreenState extends State<IntroScreen> {
   final String _viewId = 'html_intro_video_player';
-  late web.HTMLVideoElement _nativeVideoElement;
+  late JSObject _nativeVideoElement;
 
   @override
   void initState() {
     super.initState();
 
-    // 🌐 1. Create a pure HTML5 Video element directly inside the modern browser DOM engine
-    _nativeVideoElement = web.document.createElement('video') as web.HTMLVideoElement;
+    // 🌐 1. Create a pure HTML5 Video element directly using native JS Interop macro bindings
+    _nativeVideoElement = nativeCreateElement('video'.toJS);
     
-    _nativeVideoElement.src = 'intro.mp4'; // Maps directly to your root-level bundled file asset path
-    _nativeVideoElement.style.border = 'none';
-    _nativeVideoElement.style.width = '100%';
-    _nativeVideoElement.style.height = '100%';
-    _nativeVideoElement.style.objectFit = 'cover'; // Forces the video to scale elegantly into a cover background crop
-    _nativeVideoElement.loop = true;
-    _nativeVideoElement.autoplay = true;
-    _nativeVideoElement.muted = true; // 🔊 HTML5 BROWSER AUTOPLAY FIX: Volume explicitly hard-muted to instantly unlock autoplay rendering permissions!
-    _nativeVideoElement.setAttribute('playsinline', 'true'); // Prevents iPhones from forcing fullscreen video takeovers
+    // Assign configuration values safely through standard dynamic property casting extensions
+    final dynamic video = _nativeVideoElement;
+    video.src = 'intro.mp4'; // Maps directly to your root-level bundled file asset path
+    video.style.border = 'none';
+    video.style.width = '100%';
+    video.style.height = '100%';
+    video.style.objectFit = 'cover'; // Forces the video to scale into a cover background crop
+    video.loop = true;
+    video.autoplay = true;
+    video.muted = true; // 🔊 HTML5 BROWSER AUTOPLAY FIX: Volume explicitly hard-muted to instantly unlock autoplay rendering permissions!
+    video.setAttribute('playsinline', 'true'); // Prevents iPhones from forcing fullscreen video takeovers
 
     // 🔧 2. Register the HTML element factory natively into Flutter's platform layout layer
     ui_web.platformViewRegistry.registerViewFactory(
@@ -36,17 +42,18 @@ class _IntroScreenState extends State<IntroScreen> {
       (int viewId) => _nativeVideoElement,
     );
 
-    // Trigger explicit media playback execution thread
-    _nativeVideoElement.play();
+    // Trigger explicit media playback execution thread safely
+    video.play();
   }
 
   @override
   void dispose() {
     // 🩹 Wipes out the active native video stream layout nodes to protect memory performance across views
     try {
-      _nativeVideoElement.pause();
-      _nativeVideoElement.src = '';
-      _nativeVideoElement.remove();
+      final dynamic video = _nativeVideoElement;
+      video.pause();
+      video.src = '';
+      video.remove();
     } catch (_) {}
     super.dispose();
   }
@@ -143,7 +150,8 @@ class _IntroScreenState extends State<IntroScreen> {
                         icon: const Icon(Icons.volume_up, color: Colors.white),
                         onPressed: () {
                           // Toggles browser-level audio playback parameters natively upon explicit user click interaction
-                          _nativeVideoElement.muted = !_nativeVideoElement.muted;
+                          final dynamic video = _nativeVideoElement;
+                          video.muted = !video.muted;
                         },
                       ),
                     ),
