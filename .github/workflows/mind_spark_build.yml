@@ -46,14 +46,14 @@ jobs:
       - name: Auto Clone Launcher Icons into Web Directory
         run: |
           if [ -f icon_launcher.png ]; then
-            echo "🔧 Instantiating clean icon assets tree..."
+            echo "Instantiating clean icon assets tree..."
             mkdir -p web/icons
             cp icon_launcher.png web/favicon.png
             cp icon_launcher.png web/icons/Icon-192.png
             cp icon_launcher.png web/icons/Icon-512.png
             cp icon_launcher.png web/icons/Icon-maskable-192.png
             cp icon_launcher.png web/icons/Icon-maskable-512.png
-            echo "🏆 Branding assets successfully injected into web directory structure."
+            echo "Branding assets successfully injected into web directory structure."
           else
             echo "Error: icon_launcher.png is missing from the root of your project!"
             exit 1
@@ -73,13 +73,13 @@ jobs:
 
       - name: Auto Clean and Apply Codebase Corrections
         run: |
-          echo "🩹 Running automated source corrections..."
+          echo "Running automated source corrections..."
           dart fix --apply || echo "Continuing build with remaining non-breaking issues"
           dart run flutter_launcher_icons || echo "Skipping icon generation"
 
       - name: Cloud-Side Automated Connection Assembly
         run: |
-          echo "📡 Initiating filtered codebase optimization pass..."
+          echo "Initiating filtered codebase optimization pass..."
           ROUTER_FILE="lib/generated_router.dart"
           
           cat << 'EOF' > "$ROUTER_FILE"
@@ -117,7 +117,7 @@ jobs:
 
           done < <(find lib -type f -name "*.dart")
 
-          echo "🩹 Fixing custom source file bugs..."
+          echo "Fixing custom source file bugs..."
           find lib -type f -name "*.dart" -exec sed -i 's|class PolymorphicHologramPainter extends CustomPainter {|class PolymorphicHologramPainter extends CustomPainter { @override bool shouldRepaint(CustomPainter oldDelegate) => false;|g' {} + 2>/dev/null || true
           find lib -type f -name "*.dart" -exec sed -i 's|if (mounted)|if (context.mounted)|g' {} + 2>/dev/null || true
 
@@ -190,7 +190,7 @@ jobs:
 
           find . -name ".dart" -type f -exec sed -i 's|const \[|\[|g' {} + 2>/dev/null || true
           find . -name ".dart" -type f -exec sed -i 's|return const |return |g' {} + 2>/dev/null || true
-          echo "🏆 System wide filtered mapping complete."
+          echo "System wide filtered mapping complete."
 
       - name: Build Production Web App for GitHub Pages
         run: |
