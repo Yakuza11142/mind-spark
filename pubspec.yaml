@@ -4,7 +4,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.6.0 <4.0.0' # Updated to match modern Flutter 3.47 toolchains
+  sdk: '>=3.6.0 <4.0.0' # Updated to match modern Flutter stable toolchains
 
 dependencies:
   flutter:
@@ -13,10 +13,10 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0 # Updated for Flutter 3.47 standard compliance
+  flutter_lints: ^5.0.0 # Updated for modern stable framework compliance
   flutter_launcher_icons: ^0.14.4
 
-# Launcher Icon Configuration pointing to root-level asset
+# Launcher Icon Configuration pointing directly to your root-level file asset
 flutter_launcher_icons:
   image_path: "icon_launcher.png"
   android: true
@@ -26,6 +26,8 @@ flutter_launcher_icons:
 flutter:
   uses-material-design: true
 
-  # Asset bundles mapping your root-level video file
+  # ✅ BUNDLED ASSETS SHIELD: Explicitly binds both root-level media assets
+  # This makes them readable by the Flutter app layout thread and stops the blank white screen crash!
   assets:
+    - icon_launcher.png
     - intro.mp4
