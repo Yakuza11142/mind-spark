@@ -25,72 +25,58 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ☕ Configures Java 21 to support latest Android Gradle Plugins safely
       - name: Set up Java Development Kit
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '21'
 
-      # 🚀 Targets the absolute latest stable production Flutter channel automatically
       - name: Set up Flutter SDK
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
 
-      # --- 1. INITIAL RUNTIME CLEANING & SAFE REGENERATION ---
-      # ✅ PROTECTS YOUR WEB FILES: Only recreates the android directory, leaving your custom web files entirely alone.
       - name: Format Code & Safely Recreate Android Directory
         run: |
           dart format . || echo "Bypassing formatting irregularities"
           rm -rf android/
           flutter create --platforms=android --org com.mindspark --project-name=mind_spark . || true
 
-      # --- 2. BRANDING PLATFORM ASSET RECOVERY ---
-      # ✅ CLONES ICONS FROM ROOT: Injects your root-level icon_launcher.png directly into the web structure safely
       - name: Auto Clone Launcher Icons into Web Directory
         run: |
           if [ -f icon_launcher.png ]; then
+            echo "🔧 Instantiating clean icon assets tree..."
             mkdir -p web/icons
             cp icon_launcher.png web/favicon.png
             cp icon_launcher.png web/icons/Icon-192.png
             cp icon_launcher.png web/icons/Icon-512.png
             cp icon_launcher.png web/icons/Icon-maskable-192.png
             cp icon_launcher.png web/icons/Icon-maskable-512.png
-            echo "Branding assets cloned into web structure successfully."
+            echo "🏆 Branding assets successfully injected into web directory structure."
           else
             echo "Error: icon_launcher.png is missing from the root of your project!"
             exit 1
           fi
 
-      # --- 3. REPAIR INDEX HTML & CONFIGURE DEPENDENCIES ---
       - name: Repair Index HTML & Force Local SDK Resolution
         run: |
-          # Safe fallback to make sure base reference matching matches your root landing domain cleanly
-          sed -i 's|<base href="[^"]*">|<base href="$FLUTTER_BASE_HREF">|g' web/index.html || true
-          
-          # Enable Web Compilation Natively on the SDK profile
+          sed -i 's|<base href="[^"]*">|<base href="\$FLUTTER_BASE_HREF">|g' web/index.html || true
           flutter config --enable-web
-          
-          # 🛡️ THE DEPENDENCY OVERRIDE SHIELD: Keeps internal packages anchored to your native local SDK folder
           echo "" >> pubspec.yaml
           echo "dependency_overrides:" >> pubspec.yaml
           echo "  flutter_web_plugins:" >> pubspec.yaml
           echo "    sdk: flutter" >> pubspec.yaml
-          
           rm -rf .dart_tool/
           rm -f pubspec.lock
           flutter pub get
 
-      # 🩹 CODE CORRECTIONS (LINTS & WARNINGS)
       - name: Auto Clean and Apply Codebase Corrections
         run: |
           echo "🩹 Running automated source corrections..."
           dart fix --apply || echo "Continuing build with remaining non-breaking issues"
           dart run flutter_launcher_icons || echo "Skipping icon generation"
 
-      # ✅ 4. HIGH-SPEED FILTERED AUTOMATED CONNECTION ASSEMBLY (ANTI-CRASH)
       - name: Cloud-Side Automated Connection Assembly
         run: |
           echo "📡 Initiating filtered codebase optimization pass..."
@@ -100,19 +86,16 @@ jobs:
           import 'package:flutter/material.dart';
           EOF
 
-          # 1. Map routing imports and apply safe corrections exclusively for strict screen modules
           while read -r file; do
             clean_import_path="${file#lib/}"
             if [[ "$clean_import_path" == "main.dart" || "$clean_import_path" == "generated_router.dart" ]]; then
               continue
             fi
 
-            # Strict workspace filter: Only allow files explicitly inside a screens/views folder, OR ending in _screen.dart/_view.dart
             if [[ ! "$file" =~ (screens/|views/|pages/) && ! "$file" =~ (_screen\.dart|_view\.dart|_page\.dart) ]]; then
               continue
             fi
 
-            # Strict exclusion guard for widget subcomponents and fragments
             filename_lc=$(basename "$file" .dart | tr '[:upper:]' '[:lower:]')
             if [[ "$filename_lc" =~ (button|card|dropdown|dialog|popup|nav_bar|field|bubble|selector|lock|display|chart|painter|offer|slider) ]]; then
               continue
@@ -120,24 +103,20 @@ jobs:
 
             echo "import '$clean_import_path';" >> "$ROUTER_FILE"
 
-            # Apply runtime layout corrections to source components safely
             sed -i 's|Scaffold(|Scaffold(resizeToAvoidBottomInset: true, |g' "$file" 2>/dev/null || true
             sed -i 's|setVolume(1.0)|setVolume(0.0)|g' "$file" 2>/dev/null || true
             sed -i 's|..initialize()|..initialize().then((_) { ..setVolume(0.0); })|g' "$file" 2>/dev/null || true
             
-            # Formats native string asset pointers globally to use absolute root mappings for assets
             sed -i "s|'assets/icon_launcher.png'|'icon_launcher.png'|g" "$file" 2>/dev/null || true
             sed -i "s|'assets/intro.mp4'|'intro.mp4'|g" "$file" 2>/dev/null || true
             sed -i 's|Image.asset(|Image.asset(cacheWidth: 480, |g' "$file" 2>/dev/null || true
 
           done < <(find lib -type f -name "*.dart")
 
-          # 🩹 FORCE REPAIR BROKEN INLINE APP ERRORS
           echo "🩹 Fixing custom source file bugs..."
           find lib -type f -name "*.dart" -exec sed -i 's|class PolymorphicHologramPainter extends CustomPainter {|class PolymorphicHologramPainter extends CustomPainter { @override bool shouldRepaint(CustomPainter oldDelegate) => false;|g' {} + 2>/dev/null || true
           find lib -type f -name "*.dart" -exec sed -i 's|if (mounted)|if (context.mounted)|g' {} + 2>/dev/null || true
 
-          # 2. Append the core router management framework
           cat << 'EOF' >> "$ROUTER_FILE"
 
           class AutomatedRouter {
@@ -149,7 +128,6 @@ jobs:
                 builder: (BuildContext context) {
           EOF
 
-          # 3. Compile Router Logic Map exclusively for legitimate screens
           while read -r file; do
             clean_import_path="${file#lib/}"
             if [[ "$clean_import_path" == "main.dart" || "$clean_import_path" == "generated_router.dart" ]]; then
@@ -174,28 +152,26 @@ jobs:
               short_path=$(echo "$filename" | sed 's/_screen//g' | sed 's/_view//g' | sed 's/_page//g')
 
               if [[ "$filename" == "splash_screen" || "$filename" == "splash" ]]; then
-                echo "        if (path == '/' || path.contains('splash')) return const ${classname}();" >> "$ROUTER_FILE"
+                echo "          if (path == '/' || path.contains('splash')) return const ${classname}();" >> "$ROUTER_FILE"
               elif [[ "$filename" == "premium_receipt_view" || "$filename" == "premium_receipt" ]]; then
-                echo "        if (path.contains('$short_path')) { final args = settings.arguments; if (args != null) { return ${classname}(tx: args as dynamic); } return const SplashScreen(); }" >> "$ROUTER_FILE"
+                echo "          if (path.contains('$short_path')) { final args = settings.arguments; if (args != null) { return ${classname}(tx: args as dynamic); } return const SplashScreen(); }" >> "$ROUTER_FILE"
               elif [[ "$filename" == "ai_video_feed_view" || "$filename" == "spark_ai_view" ]]; then
-                echo "        if (path.contains('$short_path')) return const ${classname}();" >> "$ROUTER_FILE"
-              elif grep -E -q "constructor|${classname}\(\{.*required" "$file" || grep -q "required this\." "$file"; then
-                param_name=$(grep -oE "required this\.[A-Za-z0-9_]+" "$file" | head -n 1 | sed 's/required this\.//g')
+                echo "          if (path.contains('$short_path')) return const ${classname}();" >> "$ROUTER_FILE"
+              elif grep -E -q "constructor|${classname}({.*required" "$file" || grep -q "required this." "$file"; then
+                param_name=$(grep -oE "required this.[A-Za-z0-9_]+" "$file" | head -n 1 | sed 's/required this.//g')
                 [[ -z "$param_name" ]] && param_name=$(grep -oE "required [A-Za-z0-9_]+ [A-Za-z0-9_]+" "$file" | head -n 1 | awk '{print $NF}')
-                
                 if [ -z "$param_name" ]; then
-                  echo "        if (path.contains('$short_path')) return const ${classname}();" >> "$ROUTER_FILE"
+                  echo "          if (path.contains('$short_path')) return const ${classname}();" >> "$ROUTER_FILE"
                 else
-                  echo "        if (path.contains('$short_path')) { final args = settings.arguments; if (args != null) { return ${classname}($param_name: args as dynamic); } return const SplashScreen(); }" >> "$ROUTER_FILE"
+                  echo "          if (path.contains('$short_path')) { final args = settings.arguments; if (args != null) { return ${classname}($param_name: args as dynamic); } return const SplashScreen(); }" >> "$ROUTER_FILE"
                 fi
               else
-                echo "        if (path.contains('$short_path')) return const ${classname}();" >> "$ROUTER_FILE"
+                echo "          if (path.contains('$short_path')) return const ${classname}();" >> "$ROUTER_FILE"
               fi
             fi
           done < <(find lib -type f -name "*.dart")
-
+          
           cat << 'EOF' >> "$ROUTER_FILE"
-                  
                   return const SplashScreen();
                 },
               );
@@ -203,38 +179,73 @@ jobs:
           }
           EOF
 
-          # 4. Clear global constant compilation mismatches
           find . -name "*.dart" -type f -exec sed -i 's|const [|[|g' {} + 2>/dev/null || true
           find . -name "*.dart" -type f -exec sed -i 's|return const |return |g' {} + 2>/dev/null || true
           echo "🏆 System wide filtered mapping complete."
 
-      # --- 5. MULTI-PLATFORM ENFORCED PRODUCTION DRIVERS ---
-      # 🌐 TARGET 1: Build Production Web App FIRST using a clean root directory pointer
       - name: Build Production Web App for GitHub Pages
         run: |
-          flutter build web --release --base-href "/"
-          # Modern, native caching bypass: drops the deprecated service worker safely
-          echo "Patching bootstrap config..."
+          flutter build web --release --base-href "/mind-spark/"
           sed -i 's|serviceWorkerVersion:|// serviceWorkerVersion:|g' build/web/index.html || true
           rm -f build/web/flutter_service_worker.js || true
-          # 💎 ABSOLUTE HARDWARE PATH PATCH: Injects copies of root assets directly into the output web root folder
-          # This guarantees that the web browser finds them instantly whether requested from the root or virtual assets folder!
-          echo "Injecting absolute asset pathways directly into deployment canvas..."
           cp -f icon_launcher.png build/web/icon_launcher.png || true
           cp -f intro.mp4 build/web/intro.mp4 || true
           mkdir -p build/web/assets
           cp -f icon_launcher.png build/web/assets/icon_launcher.png || true
           cp -f intro.mp4 build/web/assets/intro.mp4 || true
+          mkdir -p build/web/assets/fonts/
+          FLUTTER_SDK_FONTS="${{ env.FLUTTER_ROOT }}/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf"
+          if [ -f "$FLUTTER_SDK_FONTS" ]; then
+            cp -f "$FLUTTER_SDK_FONTS" build/web/assets/fonts/MaterialIcons-Regular.otf || true
+          else
+            find /opt/hostedtoolcache/flutter -name "MaterialIcons-Regular.otf" -exec cp -f {} build/web/assets/fonts/ \; 2>/dev/null || true
+          fi
+          mkdir -p build/web/icons
+          cp -f icon_launcher.png build/web/icons/Icon-192.png || true
+          cp -f icon_launcher.png build/web/icons/Icon-512.png || true
+          cat << 'EOF' > build/web/manifest.json
+          {
+            "name": "Mind Spark",
+            "short_name": "Mind Spark",
+            "start_url": ".",
+            "display": "standalone",
+            "background_color": "#1B1424",
+            "theme_color": "#1B1424",
+            "description": "AI TUTOR & AR LAB",
+            "orientation": "portrait",
+            "icons": [
+              {
+                "src": "icons/Icon-192.png",
+                "sizes": "192x192",
+                "type": "image/png"
+              },
+              {
+                "src": "icons/Icon-512.png",
+                "sizes": "512x512",
+                "type": "image/png"
+              }
+            ]
+          }
+          EOF
+          cat << 'EOF' > build/web/assets/AssetManifest.json
+          {
+            "packages/material_design_icons_flutter/lib/fonts/MaterialIcons-Regular.otf": ["assets/fonts/MaterialIcons-Regular.otf"]
+          }
+          EOF
 
-      # 🤖 TARGET 2: Build Release APK SECOND
       - name: Build Release APK
         run: |
-          flutter build apk --release --build-name=1.0.0 --build-number=1 --no-tree-shake-icons
+          flutter build apk --release \
+            --build-name=1.0.0 \
+            --build-number=1 \
+            --no-tree-shake-icons
 
-      # 📦 TARGET 3: Build Release App Bundle (AAB) THIRD
       - name: Build Release App Bundle (AAB)
         run: |
-          flutter build appbundle --release --build-name=1.0.0 --build-number=1 --no-tree-shake-icons
+          flutter build appbundle --release \
+            --build-name=1.0.0 \
+            --build-number=1 \
+            --no-tree-shake-icons
 
       - name: Upload Android APK & AAB Artifacts
         uses: actions/upload-artifact@v4
