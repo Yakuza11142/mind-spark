@@ -1,0 +1,24 @@
+{
+  "navigationTabs": [
+    {"label": "Home", "icon": "home", "route": "/"},
+    {"label": "Curriculum", "icon": "book", "route": "/subjects"},
+    {"label": "Leaderboard", "icon": "leaderboard", "route": "/rank"},
+    {"label": "Rewards", "icon": "card_giftcard", "route": "/rewards"}
+  ],
+  "homeModules": [],
+  "curriculumSubjects": [
+    {"name": "Mathematics", "desc": "Algebra, Geometry & Spatial Vectors", "route": "/subject/math"},
+    {"name": "English Language", "desc": "Grammar, Reading & Comprehension", "route": "/subject/english"},
+    {"name": "Basic Science", "desc": "Physics, Chemistry & Biology", "route": "/subject/science"},
+    {"name": "Information Technology", "desc": "Coding, Algorithms & Logic", "route": "/subject/it"},
+    {"name": "Advanced Analytics", "desc": "Predictive Insights & Behavioral Tracking", "route": "/subject/analytics"},
+    {"name": "Interactive Arts & Media", "desc": "Multimedia, Immersive Tech & Design", "route": "/subject/arts"}
+  ],
+  "ranks": [
+    {"rank": 1, "title": "Novice Spark", "minPoints": 0, "badge": "bolt"},
+    {"rank": 2, "title": "Elite Pathfinder", "minPoints": 100, "badge": "explore"},
+    {"rank": 3, "title": "Master Trailblazer", "minPoints": 250, "badge": "star"},
+    {"rank": 4, "title": "Quantum Scholar", "minPoints": 500, "badge": "psychology"},
+    {"rank": 5, "title": "Mind Spark Legend", "minPoints": 1000, "badge": "military_tech"}
+  ]
+}
