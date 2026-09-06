@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -75,18 +76,29 @@ class _SparkAIViewState extends State<SparkAIView> with TickerProviderStateMixin
         _synthesizeVoiceResponse(theme.colorScheme.secondary.toString());
       } else {
         _liveWaveController.stop();
-        const MethodChannel('flutter/accessibility').invokeMethod('cancel'); 
+        _invokePlatformChannel('cancel', null);
       }
     });
   }
 
   void _synthesizeVoiceResponse(String speechText) {
+    _invokePlatformChannel('announce', {'message': speechText});
+  }
+
+  Future<void> _invokePlatformChannel(String method, Map<String, dynamic>? arguments) async {
+    if (kIsWeb) return; // Safely bypass platform channels on web targets
     try {
-      const MethodChannel('flutter/accessibility').invokeMethod(
-        'announce',
-        {'message': speechText},
-      );
-    } catch (_) {}
+      const MethodChannel channel = MethodChannel('flutter/accessibility');
+      if (arguments != null) {
+        await channel.invokeMethod(method, arguments);
+      } else {
+        await channel.invokeMethod(method);
+      }
+    } on PlatformException catch (e) {
+      debugPrint('Platform channel error ($method): ${e.message}');
+    } catch (e) {
+      debugPrint('Unexpected channel error ($method): $e');
+    }
   }
 
   void _exportProceduralFile(ThemeData theme) {
@@ -106,7 +118,6 @@ class _SparkAIViewState extends State<SparkAIView> with TickerProviderStateMixin
     final double canvasWidth = mediaQuery.size.width;
     final double canvasHeight = mediaQuery.size.height;
 
-    // Fixed: Safely resolve fontFamily string without relying on uninitialized typography styles
     final String fallbackFontName = theme.textTheme.bodyLarge?.fontFamily ?? 'Text Core';
 
     return Scaffold(
@@ -148,7 +159,6 @@ class _SparkAIViewState extends State<SparkAIView> with TickerProviderStateMixin
 
           // 👁️ MODE A: DYNAMIC MULTIMODAL CANVAS MEDIA CARD BLOCKS
           if (_hasGenerated && !_isAetherLiveMode) ...[
-            // Text Core Box
             Positioned(
               left: (canvasWidth * 0.05) + _panOffset.dx,
               top: (canvasHeight * 0.12) + _panOffset.dy,
@@ -157,8 +167,6 @@ class _SparkAIViewState extends State<SparkAIView> with TickerProviderStateMixin
                 child: Text(_activePromptToken, style: TextStyle(color: theme.textTheme.bodyMedium?.color, fontSize: 11)),
               ),
             ),
-
-            // Image Core Box
             Positioned(
               left: (canvasWidth * 0.55) + _panOffset.dx,
               top: (canvasHeight * 0.10) + _panOffset.dy,
@@ -170,8 +178,6 @@ class _SparkAIViewState extends State<SparkAIView> with TickerProviderStateMixin
                 ),
               ),
             ),
-
-            // Video Core Box
             Positioned(
               left: (canvasWidth * 0.05) + _panOffset.dx,
               top: (canvasHeight * 0.40) + _panOffset.dy,
@@ -183,8 +189,6 @@ class _SparkAIViewState extends State<SparkAIView> with TickerProviderStateMixin
                 ),
               ),
             ),
-
-            // 3D Geometry Object Exporter Core Box
             Positioned(
               left: (canvasWidth * 0.52) + _panOffset.dx,
               top: (canvasHeight * 0.38) + _panOffset.dy,
@@ -257,7 +261,6 @@ class _SparkAIViewState extends State<SparkAIView> with TickerProviderStateMixin
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // 🎛️ INLINE MODE CHOICE SEGMENTED CONTROL BAR
                 Container(
                   margin: EdgeInsets.only(bottom: mediaQuery.size.height * 0.015),
                   padding: EdgeInsets.all(mediaQuery.size.height * 0.005),
@@ -288,7 +291,6 @@ class _SparkAIViewState extends State<SparkAIView> with TickerProviderStateMixin
                     ],
                   ),
                 ),
-                // TEXT FIELD INPUT AREA
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: mediaQuery.size.width * 0.04, vertical: mediaQuery.size.height * 0.005),
                   decoration: BoxDecoration(
@@ -376,6 +378,16 @@ class _SparkAIViewState extends State<SparkAIView> with TickerProviderStateMixin
 }
 
 class OmniSynthesisPainter extends CustomPainter {
+  static const double _waveStep = 10.0;
+  static const double _waveFrequencyMultiplier = 0.02;
+  static const double _maxLiveAmplitude = 22.0;
+  static const List<Offset> _branchOffsets = [
+    Offset(-90, -160),
+    Offset(110, -180),
+    Offset(-70, 90),
+    Offset(100, 80),
+  ];
+
   final Offset panOffset; 
   final double pulseValue; 
   final double liveWaveValue; 
@@ -400,15 +412,16 @@ class OmniSynthesisPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..isAntiAlias = true;
     final Offset coreAnchor = Offset(size.width / 2, size.height * 0.4) + panOffset;
+    
     if (isLiveActive) {
       paint.style = PaintingStyle.stroke; 
       paint.strokeWidth = 1.5;
       for (int i = 0; i < 5; i++) {
         paint.color = accentColor.withOpacity(0.4 - (i * 0.07));
         final path = Path()..moveTo(0, size.height * 0.42);
-        for (double x = 0; x <= size.width; x += 10) {
-          double amplitude = 22.0 * liveWaveValue;
-          double y = size.height * 0.42 + (amplitude * math.sin((x * 0.02) + (i * 0.5)));
+        for (double x = 0; x <= size.width; x += _waveStep) {
+          double amplitude = _maxLiveAmplitude * liveWaveValue;
+          double y = size.height * 0.42 + (amplitude * math.sin((x * _waveFrequencyMultiplier) + (i * 0.5)));
           path.lineTo(x, y);
         }
         canvas.drawPath(path, paint);
@@ -418,13 +431,13 @@ class OmniSynthesisPainter extends CustomPainter {
       paint.strokeWidth = 0.5; 
       paint.color = themeColor.withOpacity(0.06 * (1.0 - pulseValue));
       canvas.drawCircle(coreAnchor, 40 + (pulseValue * 160), paint);
+      
       if (hasGenerated) {
         paint.color = accentColor.withOpacity(0.2); 
         paint.strokeWidth = 0.75;
-        canvas.drawLine(coreAnchor, coreAnchor + const Offset(-90, -160), paint);
-        canvas.drawLine(coreAnchor, coreAnchor + const Offset(110, -180), paint);
-        canvas.drawLine(coreAnchor, coreAnchor + const Offset(-70, 90), paint);
-        canvas.drawLine(coreAnchor, coreAnchor + const Offset(100, 80), paint);
+        for (final offset in _branchOffsets) {
+          canvas.drawLine(coreAnchor, coreAnchor + offset, paint);
+        }
       }
     }
   }
@@ -453,6 +466,11 @@ class CanvasMicroImagePainter extends CustomPainter {
 }
 
 class LiveStreamMotionPainter extends CustomPainter {
+  static const double _motionStep = 4.0;
+  static const double _frequencyMultiplier = 0.04;
+  static const double _waveAmplitude = 14.0;
+  static const double _fullCircleRadians = 6.28;
+
   final double pulse; 
   final Color themeColor; 
   final Color canvasBg; 
@@ -463,8 +481,8 @@ class LiveStreamMotionPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), Paint()..color = canvasBg);
     final path = Path()..moveTo(0, size.height);
-    for (double x = 0; x <= size.width; x += 4.0) {
-      double y = size.height * 0.5 + (14 * math.sin((x * 0.04) + (pulse * 6.28))); 
+    for (double x = 0; x <= size.width; x += _motionStep) {
+      double y = size.height * 0.5 + (_waveAmplitude * math.sin((x * _frequencyMultiplier) + (pulse * _fullCircleRadians))); 
       path.lineTo(x, y);
     }
     canvas.drawPath(path, Paint()..isAntiAlias = true..color = themeColor.withOpacity(0.35)..style = PaintingStyle.fill);
@@ -475,6 +493,8 @@ class LiveStreamMotionPainter extends CustomPainter {
 }
 
 class Axonometric3DVectorPainter extends CustomPainter {
+  static const double _sqrtThreeOverTwo = 1.732 / 2;
+
   final double pulse; 
   final Color themeColor; 
 
@@ -487,21 +507,25 @@ class Axonometric3DVectorPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0
       ..color = themeColor;
+    
     final double cx = size.width / 2; 
     final double cy = size.height / 2; 
     double o = 20.0 + (pulse * 8.0);
+    
     Offset p1 = Offset(cx, cy - o); 
-    Offset p2 = Offset(cx + (o * 1.73 / 2), cy - (o / 2)); 
-    Offset p3 = Offset(cx + (o * 1.73 / 2), cy + (o / 2));
+    Offset p2 = Offset(cx + (o * _sqrtThreeOverTwo), cy - (o / 2)); 
+    Offset p3 = Offset(cx + (o * _sqrtThreeOverTwo), cy + (o / 2));
     Offset p4 = Offset(cx, cy + o); 
-    Offset p5 = Offset(cx - (o * 1.73 / 2), cy + (o / 2)); 
-    Offset p6 = Offset(cx - (o * 1.73 / 2), cy - (o / 2));
+    Offset p5 = Offset(cx - (o * _sqrtThreeOverTwo), cy + (o / 2)); 
+    Offset p6 = Offset(cx - (o * _sqrtThreeOverTwo), cy - (o / 2));
+    
     canvas.drawLine(p1, p2, paint); 
     canvas.drawLine(p2, p3, paint); 
     canvas.drawLine(p3, p4, paint); 
     canvas.drawLine(p4, p5, paint); 
     canvas.drawLine(p5, p6, paint); 
     canvas.drawLine(p6, p1, paint);
+    
     canvas.drawLine(Offset(cx, cy), p1, paint..color = themeColor.withOpacity(0.5)); 
     canvas.drawLine(Offset(cx, cy), p3, paint); 
     canvas.drawLine(Offset(cx, cy), p5, paint);
