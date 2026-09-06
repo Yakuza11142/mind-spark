@@ -95,11 +95,11 @@ jobs:
             if ! grep -q "class RankItem" lib/services/app_repository.dart; then
               cat << 'EOF' >> lib/services/app_repository.dart
 
-class RankItem {
-  final String title;
-  RankItem({required this.title});
-}
-EOF
+          class RankItem {
+            final String title;
+            RankItem({required this.title});
+          }
+          EOF
             fi
           fi
 
