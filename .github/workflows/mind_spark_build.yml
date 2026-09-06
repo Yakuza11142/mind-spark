@@ -46,14 +46,14 @@ jobs:
       - name: Auto Clone Launcher Icons into Web Directory
         run: |
           if [ -f icon_launcher.png ]; then
-            echo "Instantiating clean icon assets tree..."
+            echo "🔧 Instantiating clean icon assets tree..."
             mkdir -p web/icons
             cp icon_launcher.png web/favicon.png
             cp icon_launcher.png web/icons/Icon-192.png
             cp icon_launcher.png web/icons/Icon-512.png
             cp icon_launcher.png web/icons/Icon-maskable-192.png
             cp icon_launcher.png web/icons/Icon-maskable-512.png
-            echo "Branding assets successfully injected into web directory structure."
+            echo "🏆 Branding assets successfully injected into web directory structure."
           else
             echo "Error: icon_launcher.png is missing from the root of your project!"
             exit 1
@@ -63,23 +63,25 @@ jobs:
         run: |
           sed -i 's|<base href="[^"]*">|<base href="$FLUTTER_BASE_HREF">|g' web/index.html || true
           flutter config --enable-web
+          
           echo "" >> pubspec.yaml
           echo "dependency_overrides:" >> pubspec.yaml
           echo "  flutter_web_plugins:" >> pubspec.yaml
           echo "    sdk: flutter" >> pubspec.yaml
+          
           rm -rf .dart_tool/
           rm -f pubspec.lock
           flutter pub get
 
       - name: Auto Clean and Apply Codebase Corrections
         run: |
-          echo "Running automated source corrections..."
+          echo "🩹 Running automated source corrections..."
           dart fix --apply || echo "Continuing build with remaining non-breaking issues"
           dart run flutter_launcher_icons || echo "Skipping icon generation"
 
       - name: Cloud-Side Automated Connection Assembly
         run: |
-          echo "Initiating filtered codebase optimization pass..."
+          echo "📡 Initiating filtered codebase optimization pass..."
           ROUTER_FILE="lib/generated_router.dart"
           
           cat << 'EOF' > "$ROUTER_FILE"
@@ -110,14 +112,13 @@ jobs:
             sed -i 's|Scaffold(|Scaffold(resizeToAvoidBottomInset: true, |g' "$file" 2>/dev/null || true
             sed -i 's|setVolume(1.0)|setVolume(0.0)|g' "$file" 2>/dev/null || true
             sed -i 's|..initialize()|..initialize().then((_) { ..setVolume(0.0); })|g' "$file" 2>/dev/null || true
-            
             sed -i "s|'assets/icon_launcher.png'|'icon_launcher.png'|g" "$file" 2>/dev/null || true
             sed -i "s|'assets/intro.mp4'|'intro.mp4'|g" "$file" 2>/dev/null || true
             sed -i 's|Image.asset(|Image.asset(cacheWidth: 480, |g' "$file" 2>/dev/null || true
 
           done < <(find lib -type f -name "*.dart")
 
-          echo "Fixing custom source file bugs..."
+          echo "🩹 Fixing custom source file bugs..."
           find lib -type f -name "*.dart" -exec sed -i 's|class PolymorphicHologramPainter extends CustomPainter {|class PolymorphicHologramPainter extends CustomPainter { @override bool shouldRepaint(CustomPainter oldDelegate) => false;|g' {} + 2>/dev/null || true
           find lib -type f -name "*.dart" -exec sed -i 's|if (mounted)|if (context.mounted)|g' {} + 2>/dev/null || true
 
@@ -181,45 +182,45 @@ jobs:
           done < <(find lib -type f -name "*.dart")
 
           cat << 'EOF' >> "$ROUTER_FILE"
-                return const SplashScreen();
-              },
-            );
+                  return const SplashScreen();
+                },
+              );
+            }
           }
-        }
           EOF
 
-          find . -name ".dart" -type f -exec sed -i 's|const \[|\[|g' {} + 2>/dev/null || true
-          find . -name ".dart" -type f -exec sed -i 's|return const |return |g' {} + 2>/dev/null || true
-          echo "System wide filtered mapping complete."
+          find lib -name "*.dart" -type f -exec sed -i 's|const [A-Z][a-zA-Z0-9]*(\s*)|&|g' {} + 2>/dev/null || true
+          echo "✅ System wide filtered mapping complete."
 
       - name: Build Production Web App for GitHub Pages
         run: |
           flutter build web --release --base-href "/mind-spark/"
+          
           echo "Patching bootstrap config..."
           sed -i 's|serviceWorkerVersion:|// serviceWorkerVersion:|g' build/web/index.html || true
           rm -f build/web/flutter_service_worker.js || true
-
+          
           echo "Injecting absolute asset pathways directly into deployment canvas..."
           cp -f icon_launcher.png build/web/icon_launcher.png || true
           cp -f intro.mp4 build/web/intro.mp4 || true
           mkdir -p build/web/assets
           cp -f icon_launcher.png build/web/assets/icon_launcher.png || true
           cp -f intro.mp4 build/web/assets/intro.mp4 || true
-
+          
           echo "Recovering native Flutter Material Design Icon Fonts..."
           mkdir -p build/web/assets/fonts/
-          FLUTTER_SDK_FONTS="$FLUTTER_ROOT/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf"
+          FLUTTER_SDK_FONTS="${FLUTTER_ROOT}/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf"
           if [ -f "$FLUTTER_SDK_FONTS" ]; then
             cp -f "$FLUTTER_SDK_FONTS" build/web/assets/fonts/MaterialIcons-Regular.otf || true
           else
-            find "$FLUTTER_ROOT" -name "MaterialIcons-Regular.otf" -exec cp -f {} build/web/assets/fonts/ \; 2>/dev/null || true
+            find /opt/hostedtoolcache/flutter -name "MaterialIcons-Regular.otf" -exec cp -f {} build/web/assets/fonts/ \; 2>/dev/null || true
           fi
-
+          
           echo "Injecting custom web application icon blueprint..."
           mkdir -p build/web/icons
           cp -f icon_launcher.png build/web/icons/Icon-192.png || true
           cp -f icon_launcher.png build/web/icons/Icon-512.png || true
-
+          
           cat << 'EOF' > build/web/manifest.json
           {
             "name": "Mind Spark",
@@ -255,17 +256,11 @@ jobs:
 
       - name: Build Release APK
         run: |
-          flutter build apk --release \
-            --build-name=1.0.0 \
-            --build-number=1 \
-            --no-tree-shake-icons
+          flutter build apk --release --build-name=1.0.0 --build-number=1 --no-tree-shake-icons
 
       - name: Build Release App Bundle (AAB)
         run: |
-          flutter build appbundle --release \
-            --build-name=1.0.0 \
-            --build-number=1 \
-            --no-tree-shake-icons
+          flutter build appbundle --release --build-name=1.0.0 --build-number=1 --no-tree-shake-icons
 
       - name: Upload Android APK & AAB Artifacts
         uses: actions/upload-artifact@v4
@@ -286,7 +281,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: "${{ steps.deployment.outputs.page_url }}"
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Deploy to GitHub Pages API Pipeline
         id: deployment
