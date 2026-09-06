@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'generated_router.dart';
+import 'repositories/app_repository.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MindSparkApp());
 }
 
