@@ -1,4 +1,4 @@
-Name: Build and Deploy Mind Spark Cross-Platform
+name: Build and Deploy Mind Spark Cross-Platform
 
 on:
   push:
