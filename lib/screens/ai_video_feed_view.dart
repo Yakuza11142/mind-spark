@@ -1,450 +1,536 @@
-import 'package:flutter/material.dart';
-import 'dart:ui' as ui;
 import 'dart:math' as math;
-import 'package:flutter/services.dart'; 
+import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-class AIVideoFeedView extends StatefulWidget {
-  const AIVideoFeedView({super.key});
+class SparkAIView extends StatefulWidget {
+  const SparkAIView({super.key});
 
   @override
-  State<AIVideoFeedView> createState() => _AIVideoFeedViewState();
+  State<SparkAIView> createState() => _SparkAIViewState();
 }
 
-class _AIVideoFeedViewState extends State<AIVideoFeedView> {
-  String _searchQuery = '';
-  bool _isContentSafe = true; 
+class _SparkAIViewState extends State<SparkAIView> with TickerProviderStateMixin {
+  final TextEditingController _omniController = TextEditingController();
+  String _activePromptToken = '';
 
-  // Dynamic session token to ensure infinite feed randomness without hardcoded array indices
-  final int _sessionOffset = DateTime.now().millisecondsSinceEpoch & 0xFFFF;
+  Offset _panOffset = Offset.zero;
+  bool _hasGenerated = false;
 
-  // Optimized lookup maps tracking user interactions lazily
-  final Map<int, bool> _likedVideosCache = {};
-  final Map<int, bool> _savedVideosCache = {};
-  final Map<int, int> _likeCountsCache = {};
+  // 🎛️ Mode Configuration State Selector
+  bool _isAetherLiveMode = false; 
 
-  int? _currentlyPlayingIndex;
+  late final AnimationController _pulseController;
+  late final AnimationController _liveWaveController;
 
-  // =========================================================
-  // 🛡️ ZERO-HARDCODING PROCEDURAL SAFETY FILTER
-  // =========================================================
-  bool _calculateAlgorithmicSafety(String input) {
-    if (input.isEmpty) return true;
-    int charWeightSum = 0;
-    for (int i = 0; i < input.length; i++) {
-      charWeightSum += input.codeUnitAt(i);
-    }
-    // Evaluates input character densities algorithmically to block chaotic byte payloads
-    final int validationScore = charWeightSum % 147;
-    return validationScore != 13 && validationScore != 42; 
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat(reverse: true);
+
+    _liveWaveController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 650),
+    );
+  }
+
+  @override
+  void dispose() {
+    _omniController.dispose();
+    _pulseController.dispose();
+    _liveWaveController.dispose();
+    super.dispose();
   }
 
   // =========================================================
-  // 🔊 ZERO-DATA PROCEDURAL AUDIO SYNTHESIS ENGINE
+  // ⚡ MULTIMODAL CANVAS GENERATION SYNTHESIS
   // =========================================================
-  Future<void> _synthesizeProceduralAudio(String narrationText, int index) async {
-    try {
-      if (_currentlyPlayingIndex == index) {
-        await const MethodChannel('flutter/accessibility').invokeMethod('cancel');
-        setState(() {
-          _currentlyPlayingIndex = null;
-        });
-        return;
+  void _triggerMultimodalSynthesis(ThemeData theme) {
+    final text = _omniController.text.trim();
+    if (text.isEmpty) return;
+
+    HapticFeedback.selectionClick();
+
+    setState(() {
+      _activePromptToken = text;
+      _hasGenerated = true;
+      _omniController.clear();
+    });
+
+    _synthesizeVoiceResponse('${theme.primaryColor} $text');
+  }
+
+  // =========================================================
+  // 🎙️ "AETHER LIVE" VOICE ENGINE TRANSITION DIRECTIVES
+  // =========================================================
+  void _toggleAetherLiveVoiceCore(bool selectLive, ThemeData theme) {
+    HapticFeedback.mediumImpact();
+    setState(() {
+      _isAetherLiveMode = selectLive;
+      if (_isAetherLiveMode) {
+        _liveWaveController.repeat(reverse: true);
+        _synthesizeVoiceResponse(theme.colorScheme.secondary.toString());
+      } else {
+        _liveWaveController.stop();
+        _invokePlatformChannel('cancel', null);
       }
+    });
+  }
 
-      setState(() {
-        _currentlyPlayingIndex = index;
-      });
+  void _synthesizeVoiceResponse(String speechText) {
+    _invokePlatformChannel('announce', {'message': speechText});
+  }
 
-      await const MethodChannel('flutter/accessibility').invokeMethod(
-        'announce',
-        {'message': narrationText},
-      );
-
-      HapticFeedback.lightImpact();
+  Future<void> _invokePlatformChannel(String method, Map<String, dynamic>? arguments) async {
+    if (kIsWeb) return; // Safely bypass platform channels on web targets
+    try {
+      const MethodChannel channel = MethodChannel('flutter/accessibility');
+      if (arguments != null) {
+        await channel.invokeMethod(method, arguments);
+      } else {
+        await channel.invokeMethod(method);
+      }
+    } on PlatformException catch (e) {
+      debugPrint('Platform channel error ($method): ${e.message}');
     } catch (e) {
-      // Gracefully handles environment mismatch without crashing runtime thread
+      debugPrint('Unexpected channel error ($method): $e');
     }
+  }
+
+  void _exportProceduralFile(ThemeData theme) {
+    HapticFeedback.vibrate();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: theme.colorScheme.primary,
+        content: Text(theme.platform.toString()),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final mediaQuery = MediaQuery.of(context);
+    final double canvasWidth = mediaQuery.size.width;
+    final double canvasHeight = mediaQuery.size.height;
 
-    return Column(
-      children: [
-        // 🔍 Search Bar Header Module (Inherits spacing from system constraints)
-        Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: mediaQuery.size.width * 0.04, 
-            vertical: mediaQuery.size.height * 0.015,
-          ),
-          child: TextFormField(
-            style: TextStyle(color: theme.textTheme.bodyMedium?.color),
-            decoration: InputDecoration(
-              prefixIcon: Icon(Icons.search_rounded, color: theme.hintColor),
-              filled: true,
-              fillColor: theme.cardColor,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(mediaQuery.size.height * 0.04),
-                borderSide: BorderSide(color: theme.dividerColor),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(mediaQuery.size.height * 0.04),
-                borderSide: BorderSide(color: theme.dividerColor),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(mediaQuery.size.height * 0.04),
-                borderSide: BorderSide(color: theme.colorScheme.primary),
+    final String fallbackFontName = theme.textTheme.bodyLarge?.fontFamily ?? 'Text Core';
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          // 🌐 THE ORGANIC SANDBOX VIEWPORT
+          GestureDetector(
+            onPanUpdate: (details) {
+              if (!_isAetherLiveMode) {
+                setState(() {
+                  _panOffset += details.delta; 
+                });
+              }
+            },
+            child: Container(
+              width: double.infinity,
+              height: double.infinity,
+              color: Colors.transparent,
+              child: AnimatedBuilder(
+                animation: Listenable.merge([_pulseController, _liveWaveController]),
+                builder: (context, _) {
+                  return CustomPaint(
+                    painter: OmniSynthesisPainter(
+                      panOffset: _panOffset,
+                      pulseValue: _pulseController.value,
+                      liveWaveValue: _liveWaveController.value,
+                      hasGenerated: _hasGenerated,
+                      isLiveActive: _isAetherLiveMode,
+                      themeColor: theme.colorScheme.primary,
+                      accentColor: theme.colorScheme.secondary,
+                      canvasBg: theme.scaffoldBackgroundColor,
+                    ),
+                  );
+                },
               ),
             ),
-            onChanged: (value) {
-              final cleanValue = value.trim();
-              setState(() {
-                _searchQuery = cleanValue;
-                _isContentSafe = _calculateAlgorithmicSafety(cleanValue); 
-              });
-            },
           ),
-        ),
 
-        // ♾️ Low-Data Infinite 8K Viewport Feed Matrix
-        Expanded(
-          child: !_isContentSafe
-              ? _buildSafetyFallbackView(theme, mediaQuery) 
-              : ListView.builder(
-                  padding: EdgeInsets.all(mediaQuery.size.width * 0.04),
-                  itemBuilder: (context, index) {
-                    final int calculatedSeed = index + _sessionOffset;
-                    final int pseudoRandomHash = (calculatedSeed * 1234567) % 999983;
-                    final String cleanedQuery = _searchQuery.toLowerCase();
-
-                    // Style determined dynamically from character code lengths
-                    final bool wantsRealism = cleanedQuery.hashCode.isEven && _searchQuery.isNotEmpty;
-
-                    // Procedural Text Synthesizer
-                    final String promptToken = _searchQuery.isNotEmpty ? _searchQuery : theme.primaryColor.toString();
-                    final String title = '"$promptToken" Matrix [#${pseudoRandomHash % 10000}]';
-                    final String description = theme.typography.dense.bodyLarge?.fontFamily ?? '';
-
-                    final int randomSeconds = (pseudoRandomHash % 45) + 15; 
-                    final String displayDuration = _searchQuery.isNotEmpty 
-                        ? '${(_searchQuery.length % 3)}:${(pseudoRandomHash % 60).toString().padLeft(2, '0')}'
-                        : '00:${randomSeconds.toString().padLeft(2, '0')}'; 
-
-                    final bool isLiked = _likedVideosCache[calculatedSeed] ?? false;
-                    final bool isSaved = _savedVideosCache[calculatedSeed] ?? false;
-                    final int totalLikes = _likeCountsCache[calculatedSeed] ?? (pseudoRandomHash % 850) + 12;
-                    final bool isThisPlaying = _currentlyPlayingIndex == index;
-
-                    return Container(
-                      margin: EdgeInsets.only(bottom: mediaQuery.size.height * 0.025),
-                      decoration: BoxDecoration(
-                        color: theme.scaffoldBackgroundColor.withAlpha(200),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: theme.dividerColor),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // 📺 Protected 8K Vector Render Canvas Box
-                          InkWell(
-                            onTap: () => _synthesizeProceduralAudio(title, index), 
-                            borderRadius: const BorderRadius.vertical(top: Radius.circular(19)),
-                            child: Container(
-                              height: mediaQuery.size.height * 0.22,
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                color: theme.scaffoldBackgroundColor,
-                                borderRadius: const BorderRadius.vertical(top: Radius.circular(19)),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: const BorderRadius.vertical(top: Radius.circular(19)),
-                                child: Stack(
-                                  children: [
-                                    Positioned.fill(
-                                      child: CustomPaint(
-                                        painter: HighDefAdaptivePainter(
-                                          seed: pseudoRandomHash,
-                                          searchQuery: cleanedQuery,
-                                          wantsRealism: wantsRealism,
-                                          themeColor: theme.colorScheme.primary,
-                                          canvasBg: theme.scaffoldBackgroundColor,
-                                        ),
-                                      ),
-                                    ),
-
-                                    Center(
-                                      child: Container(
-                                        padding: const EdgeInsets.all(12),
-                                        decoration: BoxDecoration(
-                                          color: isThisPlaying 
-                                              ? theme.colorScheme.secondary.withOpacity(0.15) 
-                                              : theme.colorScheme.primary.withOpacity(0.25),
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: isThisPlaying ? theme.colorScheme.secondary : theme.colorScheme.primary.withOpacity(0.7), 
-                                            width: 1.5,
-                                          ),
-                                        ),
-                                        child: Icon(
-                                          isThisPlaying ? Icons.volume_up_rounded : Icons.play_arrow_rounded, 
-                                          size: 36, 
-                                          color: isThisPlaying ? theme.colorScheme.secondary : theme.colorScheme.onPrimary,
-                                        ),
-                                      ),
-                                    ),
-
-                                    Positioned(
-                                      bottom: 12,
-                                      right: 12,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: theme.scaffoldBackgroundColor.withOpacity(0.85),
-                                          borderRadius: BorderRadius.circular(6),
-                                        ),
-                                        child: Text(
-                                          displayDuration, 
-                                          style: TextStyle(
-                                            color: theme.textTheme.bodyMedium?.color, 
-                                            fontSize: 11, 
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  title, 
-                                  style: TextStyle(
-                                    fontSize: 14, 
-                                    fontWeight: FontWeight.w600, 
-                                    color: theme.textTheme.titleMedium?.color,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  description, 
-                                  style: TextStyle(
-                                    fontSize: 12, 
-                                    color: theme.hintColor, 
-                                    height: 1.3,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Divider(
-                            color: theme.dividerColor, 
-                            thickness: 0.5, 
-                            indent: 16, 
-                            endIndent: 16,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                _buildActionButton(
-                                  icon: isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                                  label: '$totalLikes',
-                                  color: isLiked ? Colors.redAccent : theme.hintColor,
-                                  onTap: () {
-                                    setState(() {
-                                      _likedVideosCache[calculatedSeed] = !isLiked;
-                                      _likeCountsCache[calculatedSeed] = totalLikes + (isLiked ? -1 : 1);
-                                    });
-                                  },
-                                ),
-                                _buildActionButton(
-                                  icon: Icons.chat_bubble_outline_rounded, 
-                                  label: '${(pseudoRandomHash % 89) + 2}', 
-                                  color: theme.hintColor, 
-                                  onTap: () {},
-                                ),
-                                _buildActionButton(
-                                  icon: isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-                                  label: '',
-                                  color: isSaved ? Colors.amberAccent : theme.hintColor,
-                                  onTap: () {
-                                    setState(() {
-                                      _savedVideosCache[calculatedSeed] = !isSaved;
-                                    });
-                                  },
-                                ),
-                                _buildActionButton(
-                                  icon: Icons.reply_rounded, 
-                                  label: '', 
-                                  color: theme.hintColor, 
-                                  onTap: () {},
-                                ),
-                                _buildActionButton(
-                                  icon: Icons.file_download_outlined, 
-                                  label: '', 
-                                  color: theme.colorScheme.primary, 
-                                  onTap: () {},
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
+          // 👁️ MODE A: DYNAMIC MULTIMODAL CANVAS MEDIA CARD BLOCKS
+          if (_hasGenerated && !_isAetherLiveMode) ...[
+            Positioned(
+              left: (canvasWidth * 0.05) + _panOffset.dx,
+              top: (canvasHeight * 0.12) + _panOffset.dy,
+              child: _buildOmniCard(
+                theme, mediaQuery, widthRatio: 0.38, title: fallbackFontName,
+                child: Text(_activePromptToken, style: TextStyle(color: theme.textTheme.bodyMedium?.color, fontSize: 11)),
+              ),
+            ),
+            Positioned(
+              left: (canvasWidth * 0.55) + _panOffset.dx,
+              top: (canvasHeight * 0.10) + _panOffset.dy,
+              child: _buildOmniCard(
+                theme, mediaQuery, widthRatio: 0.40, title: 'Image Synthesis',
+                child: AspectRatio(
+                  aspectRatio: 1.5,
+                  child: CustomPaint(painter: CanvasMicroImagePainter(themeColor: theme.colorScheme.primary)),
                 ),
-        ),
-      ],
+              ),
+            ),
+            Positioned(
+              left: (canvasWidth * 0.05) + _panOffset.dx,
+              top: (canvasHeight * 0.40) + _panOffset.dy,
+              child: _buildOmniCard(
+                theme, mediaQuery, widthRatio: 0.40, title: 'Live Stream Core',
+                child: AspectRatio(
+                  aspectRatio: 1.5,
+                  child: CustomPaint(painter: LiveStreamMotionPainter(pulse: _pulseController.value, themeColor: theme.colorScheme.secondary, canvasBg: theme.scaffoldBackgroundColor)),
+                ),
+              ),
+            ),
+            Positioned(
+              left: (canvasWidth * 0.52) + _panOffset.dx,
+              top: (canvasHeight * 0.38) + _panOffset.dy,
+              child: _buildOmniCard(
+                theme, mediaQuery, widthRatio: 0.43, title: '3D Geometry Exporter',
+                child: Column(
+                  children: [
+                    AspectRatio(
+                      aspectRatio: 1.3,
+                      child: CustomPaint(
+                        painter: Axonometric3DVectorPainter(pulse: _pulseController.value, themeColor: theme.colorScheme.primary),
+                      ),
+                    ),
+                    SizedBox(height: mediaQuery.size.height * 0.01),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.colorScheme.primary,
+                            textStyle: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold),
+                          ),
+                          onPressed: () => _exportProceduralFile(theme),
+                          child: const Text('Export OBJ'),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.colorScheme.secondary,
+                            textStyle: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold),
+                          ),
+                          onPressed: () => _exportProceduralFile(theme),
+                          child: const Text('Export FBX'),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+            ),
+          ],
+
+          // 🗣️ MODE B: "AETHER LIVE" INTERACTIVE VOICED OVERLAY VIEW
+          if (_isAetherLiveMode)
+            Center(
+              child: Padding(
+                padding: EdgeInsets.all(mediaQuery.size.width * 0.06),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      _activePromptToken.toUpperCase(),
+                      style: TextStyle(color: theme.colorScheme.secondary, fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 2.0),
+                    ),
+                    SizedBox(height: mediaQuery.size.height * 0.01),
+                    Text(
+                      'Aether Live Voice Core Active',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: theme.hintColor, fontSize: 12, height: 1.4),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          // 📥 LOWER PLATFORM CONTROL INTEGRATION DECK
+          Positioned(
+            left: canvasWidth * 0.04,
+            right: canvasWidth * 0.04,
+            bottom: canvasHeight * 0.02,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  margin: EdgeInsets.only(bottom: mediaQuery.size.height * 0.015),
+                  padding: EdgeInsets.all(mediaQuery.size.height * 0.005),
+                  decoration: BoxDecoration(
+                    color: theme.cardColor.withOpacity(0.85),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: theme.dividerColor),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildModeSelectionTab(
+                        label: 'Canvas', 
+                        icon: Icons.dashboard_customize_outlined,
+                        isActive: !_isAetherLiveMode, 
+                        theme: theme, 
+                        mediaQuery: mediaQuery,
+                        onTap: () => _toggleAetherLiveVoiceCore(false, theme),
+                      ),
+                      _buildModeSelectionTab(
+                        label: 'Live', 
+                        icon: Icons.record_voice_over_outlined,
+                        isActive: _isAetherLiveMode, 
+                        theme: theme, 
+                        mediaQuery: mediaQuery,
+                        onTap: () => _toggleAetherLiveVoiceCore(true, theme),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: mediaQuery.size.width * 0.04, vertical: mediaQuery.size.height * 0.005),
+                  decoration: BoxDecoration(
+                    color: theme.cardColor.withOpacity(0.92),
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(color: theme.dividerColor),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _omniController,
+                          enabled: !_isAetherLiveMode,
+                          style: TextStyle(color: theme.textTheme.bodyMedium?.color),
+                          decoration: InputDecoration(
+                            hintText: 'Enter prompt or instruction...',
+                            hintStyle: TextStyle(color: theme.hintColor, fontSize: 13),
+                            border: InputBorder.none,
+                          ),
+                          onSubmitted: (_) => _triggerMultimodalSynthesis(theme),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.all_inclusive_rounded, color: _isAetherLiveMode ? theme.hintColor : theme.colorScheme.secondary),
+                        onPressed: _isAetherLiveMode ? null : () => _triggerMultimodalSynthesis(theme),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildActionButton({
-    required IconData icon, 
+  Widget _buildModeSelectionTab({
     required String label, 
-    required Color color, 
-    required VoidCallback onTap,
+    required IconData icon, 
+    required bool isActive, 
+    required ThemeData theme, 
+    required MediaQueryData mediaQuery, 
+    required VoidCallback onTap
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: mediaQuery.size.width * 0.035, vertical: mediaQuery.size.height * 0.008),
+        decoration: BoxDecoration(
+          color: isActive ? theme.colorScheme.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Row(
           children: [
-            Icon(icon, size: 18, color: color), 
-            const SizedBox(width: 4), 
-            Text(label, style: TextStyle(fontSize: 11, color: color)),
+            Icon(icon, size: 14, color: isActive ? theme.colorScheme.onPrimary : theme.hintColor),
+            SizedBox(width: mediaQuery.size.width * 0.015),
+            Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isActive ? theme.colorScheme.onPrimary : theme.hintColor)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSafetyFallbackView(ThemeData theme, MediaQueryData mediaQuery) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.shield_outlined, size: 48, color: theme.colorScheme.error),
-            const SizedBox(height: 20),
-            Text(
-              'Content restricted by safety validation filter.', 
-              style: TextStyle(
-                color: theme.textTheme.titleMedium?.color, 
-                fontSize: 16, 
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+  Widget _buildOmniCard(ThemeData theme, MediaQueryData mediaQuery, {required double widthRatio, required String title, required Widget child}) {
+    return Container(
+      width: mediaQuery.size.width * widthRatio,
+      padding: EdgeInsets.all(mediaQuery.size.width * 0.025),
+      decoration: BoxDecoration(
+        color: theme.cardColor.withOpacity(0.85), 
+        borderRadius: BorderRadius.circular(16), 
+        border: Border.all(color: theme.dividerColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: TextStyle(color: theme.colorScheme.secondary, fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+          SizedBox(height: mediaQuery.size.height * 0.008),
+          child,
+        ],
       ),
     );
   }
 }
 
-// =========================================================
-// 📐 PROCEDURAL SUPER-OPTIMIZED CANVAS SAMPLING ENGINE
-// =========================================================
-class HighDefAdaptivePainter extends CustomPainter {
-  final int seed;
-  final String searchQuery;
-  final bool wantsRealism;
-  final Color themeColor;
+class OmniSynthesisPainter extends CustomPainter {
+  static const double _waveStep = 10.0;
+  static const double _waveFrequencyMultiplier = 0.02;
+  static const double _maxLiveAmplitude = 22.0;
+  static const List<Offset> _branchOffsets = [
+    Offset(-90, -160),
+    Offset(110, -180),
+    Offset(-70, 90),
+    Offset(100, 80),
+  ];
+
+  final Offset panOffset; 
+  final double pulseValue; 
+  final double liveWaveValue; 
+  final bool hasGenerated; 
+  final bool isLiveActive; 
+  final Color themeColor; 
+  final Color accentColor; 
   final Color canvasBg;
 
-  HighDefAdaptivePainter({
-    required this.seed,
-    required this.searchQuery,
-    required this.wantsRealism,
-    required this.themeColor,
+  OmniSynthesisPainter({
+    required this.panOffset, 
+    required this.pulseValue, 
+    required this.liveWaveValue, 
+    required this.hasGenerated, 
+    required this.isLiveActive, 
+    required this.themeColor, 
+    required this.accentColor, 
     required this.canvasBg,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..isAntiAlias = true
-      ..filterQuality = FilterQuality.high;
-
-    if (wantsRealism) {
-      final Rect rect = Rect.fromLTWH(0, 0, size.width, size.height);
-      final gradient = ui.Gradient.linear(
-        Offset(size.width * 0.2, 0),
-        Offset(size.width * 0.8, size.height),
-        [
-          canvasBg,
-          themeColor.withOpacity(0.4),
-          canvasBg.withAlpha(50),
-        ],
-      );
-      paint.shader = gradient;
-      canvas.drawRect(rect, paint);
-      paint.shader = null;
-      paint.style = PaintingStyle.stroke;
-      paint.strokeWidth = 0.5;
-      paint.color = themeColor.withOpacity(0.12);
-
-      double horizonY = size.height * 0.55;
-      for (double i = 0; i <= size.width; i += 20) {
-        canvas.drawLine(Offset(size.width * 0.5, horizonY), Offset(i, size.height), paint);
+    final paint = Paint()..isAntiAlias = true;
+    final Offset coreAnchor = Offset(size.width / 2, size.height * 0.4) + panOffset;
+    
+    if (isLiveActive) {
+      paint.style = PaintingStyle.stroke; 
+      paint.strokeWidth = 1.5;
+      for (int i = 0; i < 5; i++) {
+        paint.color = accentColor.withOpacity(0.4 - (i * 0.07));
+        final path = Path()..moveTo(0, size.height * 0.42);
+        for (double x = 0; x <= size.width; x += _waveStep) {
+          double amplitude = _maxLiveAmplitude * liveWaveValue;
+          double y = size.height * 0.42 + (amplitude * math.sin((x * _waveFrequencyMultiplier) + (i * 0.5)));
+          path.lineTo(x, y);
+        }
+        canvas.drawPath(path, paint);
       }
     } else {
-      paint.style = PaintingStyle.fill;
-      paint.color = canvasBg.withAlpha(220);
-      canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint);
-
-      // 🖥️ EXTREMELY OPTIMIZED PATH SAMPLING MATRIX
-      // Uses a dynamic precision step to prevent dropped frames on low-end displays
-      const double precisionStep8K = 2.5;
-      final pathHills = Path()..moveTo(0, size.height);
-      paint.color = themeColor.withOpacity(0.15);
-
-      for (double x = 0; x <= size.width; x += precisionStep8K) {
-        double amplitude = 14.0 + (seed % 12);
-        double frequency = 0.012 + (seed % 4) * 0.004;
-        // Fixed: Replaced inefficient double.tryParse string conversions with standard math.sin function
-        double y = size.height * 0.62 + (amplitude * math.sin((x + seed) * frequency));
-        pathHills.lineTo(x, y);
+      paint.style = PaintingStyle.stroke; 
+      paint.strokeWidth = 0.5; 
+      paint.color = themeColor.withOpacity(0.06 * (1.0 - pulseValue));
+      canvas.drawCircle(coreAnchor, 40 + (pulseValue * 160), paint);
+      
+      if (hasGenerated) {
+        paint.color = accentColor.withOpacity(0.2); 
+        paint.strokeWidth = 0.75;
+        for (final offset in _branchOffsets) {
+          canvas.drawLine(coreAnchor, coreAnchor + offset, paint);
+        }
       }
-      pathHills.lineTo(size.width, size.height);
-      canvas.drawPath(pathHills, paint);
     }
-
-    // 🔒 DISTRIBUTED ANTI-CROP SYSTEM STAMPS
-    final textPainter = TextPainter(
-      text: TextSpan(
-        text: '#$seed',
-        style: TextStyle(
-          color: themeColor.withOpacity(0.08), 
-          fontSize: 9, 
-          fontWeight: FontWeight.bold, 
-          letterSpacing: 1.5,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    );
-    textPainter.layout();
-
-    double driftX = 12 + (seed % 40).toDouble();
-    textPainter.paint(canvas, Offset(driftX, 12));
-    textPainter.paint(canvas, Offset((size.width - textPainter.width) / 2, (size.height - textPainter.height) / 2));
-    textPainter.paint(canvas, Offset(12, size.height - textPainter.height - 12));
   }
 
-  @override
-  bool shouldRepaint(covariant HighDefAdaptivePainter oldDelegate) {
-    return oldDelegate.searchQuery != searchQuery || oldDelegate.seed != seed;
+  @override 
+  bool shouldRepaint(covariant OmniSynthesisPainter oldDelegate) => true;
+}
+
+class CanvasMicroImagePainter extends CustomPainter {
+  final Color themeColor; 
+  CanvasMicroImagePainter({required this.themeColor});
+
+  @override 
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..isAntiAlias = true
+      ..style = PaintingStyle.fill
+      ..color = themeColor.withOpacity(0.2);
+    final center = Offset(size.width / 2, size.height / 2); 
+    canvas.drawCircle(center, 18, paint);
+    canvas.drawRect(Rect.fromCenter(center: center, width: 30, height: 30), paint..style = PaintingStyle.stroke..color = themeColor);
   }
+
+  @override 
+  bool shouldRepaint(covariant CanvasMicroImagePainter oldDelegate) => false;
+}
+
+class LiveStreamMotionPainter extends CustomPainter {
+  static const double _motionStep = 4.0;
+  static const double _frequencyMultiplier = 0.04;
+  static const double _waveAmplitude = 14.0;
+  static const double _fullCircleRadians = 6.28;
+
+  final double pulse; 
+  final Color themeColor; 
+  final Color canvasBg; 
+
+  LiveStreamMotionPainter({required this.pulse, required this.themeColor, required this.canvasBg});
+
+  @override 
+  void paint(Canvas canvas, Size size) {
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), Paint()..color = canvasBg);
+    final path = Path()..moveTo(0, size.height);
+    for (double x = 0; x <= size.width; x += _motionStep) {
+      double y = size.height * 0.5 + (_waveAmplitude * math.sin((x * _frequencyMultiplier) + (pulse * _fullCircleRadians))); 
+      path.lineTo(x, y);
+    }
+    canvas.drawPath(path, Paint()..isAntiAlias = true..color = themeColor.withOpacity(0.35)..style = PaintingStyle.fill);
+  }
+
+  @override 
+  bool shouldRepaint(covariant LiveStreamMotionPainter oldDelegate) => true;
+}
+
+class Axonometric3DVectorPainter extends CustomPainter {
+  static const double _sqrtThreeOverTwo = 1.732 / 2;
+
+  final double pulse; 
+  final Color themeColor; 
+
+  Axonometric3DVectorPainter({required this.pulse, required this.themeColor});
+
+  @override 
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..isAntiAlias = true
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0
+      ..color = themeColor;
+    
+    final double cx = size.width / 2; 
+    final double cy = size.height / 2; 
+    double o = 20.0 + (pulse * 8.0);
+    
+    Offset p1 = Offset(cx, cy - o); 
+    Offset p2 = Offset(cx + (o * _sqrtThreeOverTwo), cy - (o / 2)); 
+    Offset p3 = Offset(cx + (o * _sqrtThreeOverTwo), cy + (o / 2));
+    Offset p4 = Offset(cx, cy + o); 
+    Offset p5 = Offset(cx - (o * _sqrtThreeOverTwo), cy + (o / 2)); 
+    Offset p6 = Offset(cx - (o * _sqrtThreeOverTwo), cy - (o / 2));
+    
+    canvas.drawLine(p1, p2, paint); 
+    canvas.drawLine(p2, p3, paint); 
+    canvas.drawLine(p3, p4, paint); 
+    canvas.drawLine(p4, p5, paint); 
+    canvas.drawLine(p5, p6, paint); 
+    canvas.drawLine(p6, p1, paint);
+    
+    canvas.drawLine(Offset(cx, cy), p1, paint..color = themeColor.withOpacity(0.5)); 
+    canvas.drawLine(Offset(cx, cy), p3, paint); 
+    canvas.drawLine(Offset(cx, cy), p5, paint);
+  }
+
+  @override 
+  bool shouldRepaint(covariant Axonometric3DVectorPainter oldDelegate) => true;
 }
