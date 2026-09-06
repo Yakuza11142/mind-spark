@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'generated_router.dart'; // 👈 GitHub Actions builds this completely automatically!
+import 'generated_router.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+void main() {
   runApp(const MindSparkApp());
 }
 
@@ -18,7 +17,7 @@ class MindSparkApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFF1B1424),
       ),
       initialRoute: '/',
-      onGenerateRoute: AutomatedRouter.resolveRoutes, // 👈 Triggers the automated map
+      onGenerateRoute: AutomatedRouter.resolveRoutes,
     );
   }
 }
