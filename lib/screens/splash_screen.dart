@@ -15,12 +15,11 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _initializeApp() async {
-    // Simulate initialization / loading check
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
 
-    // ✅ FIXED: Routes natively via direct string matching parameters in lib/main.dart
-    Navigator.pushReplacementNamed(context, '/dashboard');
+    // ✅ Routes correctly to the generated main layout to stop infinite loading
+    Navigator.pushReplacementNamed(context, '/main_layout');
   }
 
   @override
