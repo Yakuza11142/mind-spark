@@ -24,12 +24,42 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
       backgroundColor: themePrimaryBg,
       body: IndexedStack(
         index: _activeTabIndex,
-        // ✅ FIXED: Replaced static class markers with direct runtime containers to avoid classname traps
         children: [
           const HomeView(),
           const SubjectsView(),
-          Builder(builder: (_) => const Scaffold(body: Center(child: Text('AI Video Tab')))),
-          Builder(builder: (_) => const Scaffold(body: Center(child: Text('Spark AI Tab')))),
+          Builder(
+            builder: (_) => const Scaffold(
+              backgroundColor: themePrimaryBg,
+              body: Center(
+                child: Text(
+                  'Search Tab',
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ),
+            ),
+          ),
+          Builder(
+            builder: (_) => const Scaffold(
+              backgroundColor: themePrimaryBg,
+              body: Center(
+                child: Text(
+                  'AI Video Tab',
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ),
+            ),
+          ),
+          Builder(
+            builder: (_) => const Scaffold(
+              backgroundColor: themePrimaryBg,
+              body: Center(
+                child: Text(
+                  'Spark AI Tab',
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ),
+            ),
+          ),
           const RankView(),
         ],
       ),
@@ -41,11 +71,36 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
         labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
         onDestinationSelected: (index) => setState(() => _activeTabIndex = index),
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home, color: Color(0xFF00FF66)), label: ''),
-          NavigationDestination(icon: Icon(Icons.menu_book_outlined), selectedIcon: Icon(Icons.menu_book, color: Color(0xFF00FF66)), label: ''),
-          NavigationDestination(icon: Icon(Icons.play_circle_outline), selectedIcon: Icon(Icons.play_circle_filled, color: Color(0xFF00FF66)), label: ''),
-          NavigationDestination(icon: Icon(Icons.auto_awesome_outlined), selectedIcon: Icon(Icons.auto_awesome, color: Color(0xFF00FF66)), label: ''),
-          NavigationDestination(icon: Icon(Icons.star_border_rounded), selectedIcon: Icon(Icons.star_rounded, color: Color(0xFF00FF66)), label: ''),
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined, color: Colors.white70),
+            selectedIcon: Icon(Icons.home, color: Color(0xFF00FF66)),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.menu_book_outlined, color: Colors.white70),
+            selectedIcon: Icon(Icons.menu_book, color: Color(0xFF00FF66)),
+            label: 'Subjects',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.search_outlined, color: Colors.white70),
+            selectedIcon: Icon(Icons.search, color: Color(0xFF00FF66)),
+            label: 'Search',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.play_circle_outline, color: Colors.white70),
+            selectedIcon: Icon(Icons.play_circle_filled, color: Color(0xFF00FF66)),
+            label: 'AI Video',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.auto_awesome_outlined, color: Colors.white70),
+            selectedIcon: Icon(Icons.auto_awesome, color: Color(0xFF00FF66)),
+            label: 'Spark AI',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.star_border_rounded, color: Colors.white70),
+            selectedIcon: Icon(Icons.star_rounded, color: Color(0xFF00FF66)),
+            label: 'Rank',
+          ),
         ],
       ),
     );
