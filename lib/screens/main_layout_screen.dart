@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-// --- Imports from your actual lib/views/ directory ---
-import 'home_view.dart';
-import 'subjects_view.dart';
-import 'rank_view.dart';
-import 'rewards_view.dart';
-import 'settings_view.dart';
+// --- Secondary Directory View Imports ---
+import '../views/home_view.dart';
+import '../views/subjects_view.dart';
+import '../views/rank_view.dart';
+import '../views/rewards_view.dart';
+import '../views/settings_view.dart';
 
 class MainLayoutScreen extends StatefulWidget {
   const MainLayoutScreen({super.key});
