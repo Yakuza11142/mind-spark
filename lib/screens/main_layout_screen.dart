@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
-// --- Secondary Directory View Imports ---
-import '../views/home_view.dart';
-import '../views/rank_view.dart';
-import '../views/subjects_view.dart';
+// --- Imports from your actual lib/views/ directory ---
+import 'home_view.dart';
+import 'subjects_view.dart';
+import 'rank_view.dart';
+import 'rewards_view.dart';
+import 'settings_view.dart';
 
 class MainLayoutScreen extends StatefulWidget {
   const MainLayoutScreen({super.key});
@@ -24,43 +26,12 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
       backgroundColor: themePrimaryBg,
       body: IndexedStack(
         index: _activeTabIndex,
-        children: [
-          const HomeView(),
-          const SubjectsView(),
-          Builder(
-            builder: (_) => const Scaffold(
-              backgroundColor: themePrimaryBg,
-              body: Center(
-                child: Text(
-                  'Search Tab',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-              ),
-            ),
-          ),
-          Builder(
-            builder: (_) => const Scaffold(
-              backgroundColor: themePrimaryBg,
-              body: Center(
-                child: Text(
-                  'AI Video Tab',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-              ),
-            ),
-          ),
-          Builder(
-            builder: (_) => const Scaffold(
-              backgroundColor: themePrimaryBg,
-              body: Center(
-                child: Text(
-                  'Spark AI Tab',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-              ),
-            ),
-          ),
-          const RankView(),
+        children: const [
+          HomeView(),
+          SubjectsView(),
+          RewardsView(),
+          RankView(),
+          SettingsView(),
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -82,24 +53,19 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
             label: 'Subjects',
           ),
           NavigationDestination(
-            icon: Icon(Icons.search_outlined, color: Colors.white70),
-            selectedIcon: Icon(Icons.search, color: Color(0xFF00FF66)),
-            label: 'Search',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.play_circle_outline, color: Colors.white70),
-            selectedIcon: Icon(Icons.play_circle_filled, color: Color(0xFF00FF66)),
-            label: 'AI Video',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.auto_awesome_outlined, color: Colors.white70),
-            selectedIcon: Icon(Icons.auto_awesome, color: Color(0xFF00FF66)),
-            label: 'Spark AI',
+            icon: Icon(Icons.card_giftcard_outlined, color: Colors.white70),
+            selectedIcon: Icon(Icons.card_giftcard, color: Color(0xFF00FF66)),
+            label: 'Rewards',
           ),
           NavigationDestination(
             icon: Icon(Icons.star_border_rounded, color: Colors.white70),
             selectedIcon: Icon(Icons.star_rounded, color: Color(0xFF00FF66)),
             label: 'Rank',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.settings_outlined, color: Colors.white70),
+            selectedIcon: Icon(Icons.settings, color: Color(0xFF00FF66)),
+            label: 'Settings',
           ),
         ],
       ),
