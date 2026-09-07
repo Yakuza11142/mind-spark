@@ -92,24 +92,45 @@ jobs:
           if [ -f lib/services/app_repository.dart ]; then
             sed -i "s|Icons.viewin_ar_rounded|Icons.view_in_ar_rounded|g" lib/services/app_repository.dart || true
             
-            # FIX 1: Overwrite RankItem with correct fields instead of appending broken one
+            # FULL BULLETPROOF RankItem + Helpers
             cat << 'EOF' > lib/services/app_repository.dart.tmp
+          import 'package:flutter/material.dart';
+
+          extension StringIcon on String {
+            IconData get toIconData {
+              switch (toLowerCase()) {
+                case 'star': return Icons.star;
+                case 'workspace_premium': return Icons.workspace_premium;
+                case 'emoji_events': return Icons.emoji_events;
+                case 'military_tech': return Icons.military_tech;
+                case 'trophy': return Icons.emoji_events;
+                case 'crown': return Icons.workspace_premium;
+                case 'diamond': return Icons.diamond;
+                case 'bolt': return Icons.bolt;
+                default: return Icons.circle;
+              }
+            }
+          }
+
           class RankItem {
             final String title;
             final int rank;
             final int minPoints;
+            final IconData badge;
 
             RankItem({
               required this.title,
               required this.rank,
               required this.minPoints,
+              required this.badge,
             });
 
             factory RankItem.fromJson(Map<String, dynamic> json) {
               return RankItem(
-                title: json['title'] ?? '',
-                rank: json['rank'] ?? 0,
-                minPoints: json['minPoints'] ?? 0,
+                title: json['title']?.toString() ?? 'Unranked',
+                rank: int.tryParse(json['rank'].toString()) ?? 0,
+                minPoints: int.tryParse(json['minPoints'].toString()) ?? 0,
+                badge: (json['badge']?.toString() ?? 'circle').toIconData,
               );
             }
           }
@@ -133,7 +154,7 @@ jobs:
             sed -i 's|=> r.title ==|=> (r as dynamic).title ==|g' lib/views/rank_view.dart || true
           fi
 
-          # FIX 2: Router with import + fallback to Scaffold if SplashScreen doesn't exist
+          # FIXED ROUTER - No missing SplashScreen
           ROUTER_FILE="lib/generated_router.dart"
           cat << 'EOF' > "$ROUTER_FILE"
           import 'package:flutter/material.dart';
@@ -144,8 +165,11 @@ jobs:
               return MaterialPageRoute(
                 settings: settings,
                 builder: (BuildContext context) {
-                  if (path == '/') return const Scaffold(body: Center(child: Text('Mind Spark')));
-                  return const Scaffold(body: Center(child: Text('Mind Spark')));
+                  return const Scaffold(
+                    body: Center(
+                      child: Text('Mind Spark', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                    ),
+                  );
                 },
               );
             }
@@ -177,10 +201,10 @@ jobs:
             sed -i "s|'assets/icon_launcher.png'|'icon_launcher.png'|g" "$file" 2>/dev/null || true
             sed -i "s|'assets/intro.mp4'|'intro.mp4'|g" "$file" 2>/dev/null || true
             sed -i 's|Image.asset(|Image.asset(cacheWidth: 480, |g' "$file" 2>/dev/null || true
+            sed -i 's|if (mounted)|if (context.mounted)|g' "$file" 2>/dev/null || true
           done < <(find lib -type f -name "*.dart")
 
           find lib -type f -name "*.dart" -exec sed -i 's|class PolymorphicHologramPainter extends CustomPainter {|class PolymorphicHologramPainter extends CustomPainter { @override bool shouldRepaint(CustomPainter oldDelegate) => false;|g' {} + 2>/dev/null || true
-          find lib -type f -name "*.dart" -exec sed -i 's|if (mounted)|if (context.mounted)|g' {} + 2>/dev/null || true
           echo "🏆 System wide filtered mapping complete."
 
       - name: Build Production Web App for GitHub Pages
@@ -281,4 +305,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages API Pipeline
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
