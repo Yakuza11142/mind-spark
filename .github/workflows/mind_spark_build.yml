@@ -84,16 +84,26 @@ jobs:
             sed -i "s|import 'repositories/app_repository.dart';|import 'services/app_repository.dart';|g" lib/main.dart || true
           fi
 
+          # ENSURE ASSETS FOLDER IS IN PUBSPEC
+          if ! grep -q "assets/data/" pubspec.yaml; then
+            echo "" >> pubspec.yaml
+            echo "flutter:" >> pubspec.yaml
+            echo "  assets:" >> pubspec.yaml
+            echo "    - assets/data/" >> pubspec.yaml
+          fi
+
           if [ -f lib/services/app_repository.dart ]; then
             sed -i "s|Icons.viewin_ar_rounded|Icons.view_in_ar_rounded|g" lib/services/app_repository.dart || true
+            sed -i "s|int.parse(m\['color'\])|int.parse(m['color'].toString().replaceFirst('#', '0xFF'))|g" lib/services/app_repository.dart || true
             
-            # 1. Remove any existing duplicate extensions + wrong imports
-            sed -i '/^import .package:flutter.material.dart.;/d' lib/services/app_repository.dart
+            # 1. Remove any existing duplicate extensions + RankItem
             sed -i '/^extension .* on String {/,/^}$/d' lib/services/app_repository.dart
-            sed -i '/class RankItem/,/^}$/d' lib/services/app_repository.dart
+            sed -i '/^class RankItem {/,/^}$/d' lib/services/app_repository.dart
             
-            # 2. Add correct import at top
-            sed -i '1s/^/import .package:flutter.material.dart.;\n/' lib/services/app_repository.dart
+            # 2. Ensure material import exists at top - only add if missing
+            if ! grep -q "import 'package:flutter/material.dart';" lib/services/app_repository.dart; then
+              sed -i '1i import '\''package:flutter/material.dart'\'';' lib/services/app_repository.dart
+            fi
 
             # 3. Append single correct extension + RankItem at bottom
             cat << 'EOF' >> lib/services/app_repository.dart
@@ -120,6 +130,9 @@ jobs:
                 case 'crown': return Icons.workspace_premium;
                 case 'diamond': return Icons.diamond;
                 case 'bolt': return Icons.bolt;
+                case 'settings': return Icons.settings;
+                case 'profile': return Icons.person;
+                case 'home': return Icons.home;
                 default: return Icons.circle;
               }
             }
@@ -178,7 +191,9 @@ jobs:
           }
           EOF
 
+          # Global fixes for all dart files
           find lib -type f -name "*.dart" -exec sed -i 's|if (mounted)|if (context.mounted)|g' {} + 2>/dev/null || true
+          find lib -type f -name "*.dart" -exec sed -i 's|Color(int.parse(|Color(int.parse(|g' {} + 2>/dev/null || true
           echo "🏆 System wide filtered mapping complete."
 
       - name: Build Production Web App for GitHub Pages
@@ -192,6 +207,10 @@ jobs:
           mkdir -p build/web/assets/fonts/
           FLUTTER_SDK_FONTS="${{ env.FLUTTER_ROOT }}/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf"
           cp -f "$FLUTTER_SDK_FONTS" build/web/assets/fonts/MaterialIcons-Regular.otf || true
+          
+          # Copy assets folder to build
+          if [ -d "assets" ]; then cp -r assets build/web/; fi
+
           cat << 'EOF' > build/web/manifest.json
           {"name":"Mind Spark","short_name":"Mind Spark","start_url":".","display":"standalone","background_color":"#1B1424","theme_color":"#1B1424","description":"AI TUTOR & AR LAB","orientation":"portrait","icons":[{"src":"icons/Icon-192.png","sizes":"192x192","type":"image/png"},{"src":"icons/Icon-512.png","sizes":"512x512","type":"image/png"}]}
           EOF
